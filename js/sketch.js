@@ -6,7 +6,7 @@ let earthWidth;
 
 let cities = [];
 let citiesSize = 5;
-let minimumDistance = 150; 
+let minimumDistance = 150;
 
 function resizeScreen() {
   // Update the center of the canvas
@@ -97,5 +97,19 @@ function draw() {
   for (let city of cities) {
     city.update();
     city.render();
+    if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
+      fill(255);
+      textSize(14);
+      textAlign(CENTER);
+      text(`Pop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%`, city.x, city.y - city.citySize / 2 - 10);
+    }
+  }
+}
+
+function mousePressed() {
+  for (let city of cities) {
+    if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
+      console.log(`City Population: ${city.population}`);
+    }
   }
 }
