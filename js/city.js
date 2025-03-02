@@ -1,10 +1,11 @@
+
 class City {
     constructor(x, y, population) {
         this.x = x;
         this.y = y;
         this.population = population;
         this.citySize = map(this.population, 100, 1000, 40, 100);
-        this.stability = this.calculateStability();
+        this.stability = this.calculateStability()
         this.hostiles = []
         this.allies = []
 
@@ -14,6 +15,9 @@ class City {
         this.defense = random(0, 100);         // Represents the city's ability to fend off attacks
         this.militaryStrength = random(0, 100); // Determines the strength of the city's army
         this.diplomacy = random(0, 100);       // Determines how likely the city is to form alliances
+
+        // Schedule initial relationship update
+        scheduleEvent("updateRelationships", this, 10000, true); // 10 seconds
     }
 
     render() {
@@ -53,9 +57,6 @@ class City {
 
         //Update stability
         this.stability = this.calculateStability();
-
-        // Determine relationships with other cities
-        this.determineRelationships(cities);
     }
 
     calculateStability() {
@@ -80,33 +81,17 @@ class City {
                 this.addAlly(city);
             }
         }
-
-
     }
 
     addHostile(city) {
         if (city instanceof City && city !== this && !this.hostiles.includes(city)) {
             this.hostiles.push(city);
-            console.log(`Added hostile: City (${city.x}, ${city.y})`);
-        } else if (city === this) {
-            console.warn("Cannot add self as hostile.");
-        } else if (this.hostiles.includes(city)) {
-            console.warn("City is already marked as hostile.");
-        } else {
-            console.warn("Invalid hostile attempted to be added:", city);
         }
     }
 
     addAlly(city) {
         if (city instanceof City && city !== this && !this.allies.includes(city)) {
             this.allies.push(city);
-            console.log(`Added ally: City (${city.x}, ${city.y})`);
-        } else if (city === this) {
-            console.warn("Cannot add self as ally.");
-        } else if (this.allies.includes(city)) {
-            console.warn("City is already an ally.");
-        } else {
-            console.warn("Invalid ally attempted to be added:", city);
         }
     }
 
@@ -114,9 +99,6 @@ class City {
         let index = this.hostiles.indexOf(city);
         if (index > -1) {
             this.hostiles.splice(index, 1);
-            console.log(`Removed hostile: City (${city.x}, ${city.y})`);
-        } else {
-            console.warn("Attempted to remove a city that is not hostile.");
         }
     }
 
@@ -124,9 +106,6 @@ class City {
         let index = this.allies.indexOf(city);
         if (index > -1) {
             this.allies.splice(index, 1);
-            console.log(`Removed ally: City (${city.x}, ${city.y})`);
-        } else {
-            console.warn("Attempted to remove a city that is not an ally.");
         }
     }
 }

@@ -1,3 +1,4 @@
+
 let canvasContainer;
 let centerHorz, centerVert;
 
@@ -96,6 +97,10 @@ function draw() {
   rectMode(CENTER);
   rect(centerHorz, centerVert, earthWidth, earthHeight);
 
+  // Process scheduled events
+  processEvents();
+
+  // Draw connections between cities
   drawConnections();
 
   for (let city of cities) {
@@ -105,7 +110,15 @@ function draw() {
       fill(255);
       textSize(14);
       textAlign(CENTER);
-      text(`Pop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%`, city.x, city.y - city.citySize / 2 - 10);
+
+      // Display city stats in the tooltip
+      text(
+        `Pop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%\n` +
+        `Tech: ${floor(city.technology)}\nAgg: ${floor(city.aggression)}\n` +
+        `Def: ${floor(city.defense)}\nMil: ${floor(city.militaryStrength)}\nDip: ${floor(city.diplomacy)}`,
+        city.x,
+        city.y - city.citySize / 2 - 10
+      );
     }
   }
 
