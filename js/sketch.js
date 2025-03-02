@@ -73,6 +73,18 @@ function setup() {
 
     cities.push(newCity);
   }
+
+
+  if (cities[0] && cities[1]) {
+    cities[0].addAlly(cities[1]);
+  }
+  if (cities[1] && cities[2]) {
+    cities[1].addAlly(cities[2]);
+  }
+  if (cities[2] && cities[3]) {
+    cities[2].addHostile(cities[3]);
+  }
+
 }
 
 function isFarEnough(newX, newY) {
@@ -94,6 +106,8 @@ function draw() {
   rectMode(CENTER);
   rect(centerHorz, centerVert, earthWidth, earthHeight);
 
+  drawConnections();
+
   for (let city of cities) {
     city.update();
     city.render();
@@ -104,12 +118,43 @@ function draw() {
       text(`Pop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%`, city.x, city.y - city.citySize / 2 - 10);
     }
   }
+
 }
 
 function mousePressed() {
   for (let city of cities) {
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       console.log(`City Population: ${city.population}`);
+    }
+  }
+}
+
+function drawConnections() {
+  for (let i = 0; i < cities.length; i++) {
+    let city = cities[i];
+    if (city.allies && city.allies.length > 0) {
+      for (let j = 0; j < city.allies.length; j++) {
+        let ally = city.allies[j];
+        if (ally && ally instanceof City) { // Ensure ally is valid
+          stroke(0, 0, 255); // Red for allies
+          strokeWeight(2);
+          line(city.x, city.y, ally.x, ally.y);
+        } else {
+          console.warn("Invalid ally found in:", city);
+        }
+      }
+    }
+    if (city.hostiles && city.hostiles.length > 0) {
+      for (let j = 0; j < city.hostiles.length; j++) {
+        let hostile = city.hostiles[j];
+        if (hostile && hostile instanceof City) { // Ensure ally is valid
+          stroke(255, 0, 0); // Red for allies
+          strokeWeight(2);
+          line(city.x, city.y, hostile.x, hostile.y);
+        } else {
+          console.warn("Invalid ally found in:", city);
+        }
+      }
     }
   }
 }
