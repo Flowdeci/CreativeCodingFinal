@@ -7,6 +7,13 @@ class City {
         this.stability = this.calculateStability();
         this.hostiles = []
         this.allies = []
+
+        //City Stats
+        this.technology = random(0, 100);       // Represents the city's level of advancement
+        this.aggression = random(0, 100);      // Determines how likely the city is to attack others
+        this.defense = random(0, 100);         // Represents the city's ability to fend off attacks
+        this.militaryStrength = random(0, 100); // Determines the strength of the city's army
+        this.diplomacy = random(0, 100);       // Determines how likely the city is to form alliances
     }
 
     render() {
@@ -22,18 +29,59 @@ class City {
         noStroke();
         ellipse(this.x, this.y, adjustedSize);
 
-
     }
 
-    update() {
+    update(cities) {
+        //Simulate City State Changes over time
+        this.technology += random(-1, 2); // Cities slowly advance in technology
+        this.aggression += random(-0.5, 0.5); // Aggression fluctuates slightly
+        this.defense += random(-0.5, 1); // Defense improves slowly
+        this.militaryStrength += random(-1, 1); // Military strength fluctuates
+        this.diplomacy += random(-0.5, 0.5); // Diplomacy fluctuates slightly
+
+        //Constrain values
+        this.technology = constrain(this.technology, 0, 100);
+        this.aggression = constrain(this.aggression, 0, 100);
+        this.defense = constrain(this.defense, 0, 100);
+        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+        this.diplomacy = constrain(this.diplomacy, 0, 100);
+
+
+        //Update Population
         this.population += random(-2, 2);
         this.population = constrain(this.population, 100, 1000);
 
+        //Update stability
         this.stability = this.calculateStability();
+
+        // Determine relationships with other cities
+        this.determineRelationships(cities);
     }
 
     calculateStability() {
         return map(this.population, 100, 1000, 0, 1);;
+    }
+
+    determineRelationships(cities) {
+        //Reset all current relationships
+        this.hostiles = [];
+        this.allies = [];
+
+        for (let city of cities) {
+            //Skip self
+            if (city === this) {
+                continue;
+            }
+
+            //Determine relationship
+            if (this.aggression > 80 && this.aggression > city.diplomacy) {
+                this.addHostile(city);
+            } else if (this.diplomacy > 50 && city.diplomacy > 50) {
+                this.addAlly(city);
+            }
+        }
+
+
     }
 
     addHostile(city) {

@@ -75,16 +75,6 @@ function setup() {
   }
 
 
-  if (cities[0] && cities[1]) {
-    cities[0].addAlly(cities[1]);
-  }
-  if (cities[1] && cities[2]) {
-    cities[1].addAlly(cities[2]);
-  }
-  if (cities[2] && cities[3]) {
-    cities[2].addHostile(cities[3]);
-  }
-
 }
 
 function isFarEnough(newX, newY) {
@@ -109,7 +99,7 @@ function draw() {
   drawConnections();
 
   for (let city of cities) {
-    city.update();
+    city.update(cities);
     city.render();
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       fill(255);
