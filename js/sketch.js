@@ -1,4 +1,3 @@
-
 let canvasContainer;
 let centerHorz, centerVert;
 
@@ -8,6 +7,8 @@ let earthWidth;
 let cities = [];
 let citiesSize = 5;
 let minimumDistance = 150;
+
+let selectedCity = null;
 
 function resizeScreen() {
   // Update the center of the canvas
