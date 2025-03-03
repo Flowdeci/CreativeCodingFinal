@@ -113,7 +113,7 @@ function draw() {
 
       // Display city stats in the tooltip
       text(
-        `Pop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%\n` +
+        `ID: ${city.id}\nPop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%\n` +
         `Tech: ${floor(city.technology)}\nAgg: ${floor(city.aggression)}\n` +
         `Def: ${floor(city.defense)}\nMil: ${floor(city.militaryStrength)}\nDip: ${floor(city.diplomacy)}`,
         city.x,

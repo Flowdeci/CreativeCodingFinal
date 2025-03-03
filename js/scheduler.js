@@ -17,15 +17,15 @@ function scheduleEvent(type, target, delay, repeat, data = {}) {
         repeat: repeat,
         data: data
     });
-
-    console.log(`Scheduled event: ${type} for target (${target.x}, ${target.y}) at ${millis() + delay}`);
 }
+
 
 /**
  * Processes the scheduler and executes due events.
  */
 function processEvents() {
     let currentTime = millis();
+
     scheduler = scheduler.filter(event => {
         if (currentTime >= event.executeAt) {
             handleEvent(event); // Execute the event
@@ -51,21 +51,22 @@ function handleEvent(event) {
                 event.target.determineRelationships(cities);
             }
             break;
-        case "startWar":
-            console.log(`War started involving ${event.target.x}, ${event.target.y}`)
-            //Add War logic here
+        case "attack":
+            if (event.target && event.target instanceof City) {
+                if (event.target.hostiles.length > 0) {
+                    let randomHostile = event.target.hostiles[floor(random(event.target.hostiles.length))];
+                    event.target.attack(randomHostile);
+                }
+            }
             break;
         case "trade":
-            if (event.data.source && event.data.target) {
-                console.log("should trade");
-                event.data.source.trade(event.data.target);
+            if (event.target && event.target instanceof City) {
+                event.target.trade(); // Call the trade method for the city
             }
             break;
         case "statChange":
             if (event.target && event.target instanceof City) {
-                // Example: Adjust city technology
-                event.target.technology += random(-5, 5);
-                event.target.technology = constrain(event.target.technology, 0, 100);
+                event.target.applyStatChange(); // Apply drastic stat changes
             }
             break;
 
