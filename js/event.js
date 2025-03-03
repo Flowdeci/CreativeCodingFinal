@@ -1,7 +1,5 @@
 //event.js - sotres all the events that the user can implement
 
-
-
 /**
  * Nuke a city, reducing its population and increasing aggression.
  * @param {City} city - The city to nuke.
@@ -35,8 +33,15 @@ function techBoost(city) {
 function plague(city) {
     if (city) {
         //Reduce stablity and population
-        city.population*=0.7;
-        city.stability*=0.8;
+        city.population *= 0.6;
+        city.stability *= 0.7;
+        //Affect any ally cities with plague
+        if (city.allies) {
+            for (let i = 0; i < city.allies.length; i++) {
+                city.allies[i].population *= 0.7;
+                city.allies[i].stability *= 0.8;
+            }
+        }
     }
 }
 

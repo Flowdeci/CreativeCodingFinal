@@ -128,6 +128,8 @@ function draw() {
 function mousePressed() {
   for (let city of cities) {
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
+      selectedCity = city
+      console.log(`Selected city: ${city.id}`)
       console.log(`City Population: ${city.population}`);
     }
   }
@@ -161,4 +163,22 @@ function drawConnections() {
       }
     }
   }
+}
+
+function keyPressed() {
+  let targetCity = selectedCity || cities[floor(random(cities.length))];
+  if (key === 'N' || key === 'n') {
+    console.log(`Nuking: ${targetCity.id}`)
+    nukeCity(targetCity);
+  } else if (key === 'T' || key === `t`) {
+    console.log(`Techbosing: ${targetCity.id}`);
+    techBoost(targetCity);
+  } else if (key === 'P' || key === 'p') {
+    console.log(`Triggering plague for: ${targetCity.id}`);
+    plague(targetCity)
+  } else if (key === 'M' || key === 'm') {
+    console.log(`Mettttooooorrrrr STRIKKKE`);
+    meteorStrike(cities);
+  }
+
 }

@@ -1,3 +1,4 @@
+//Schedule.js- resposible for executing all the cities events at specific times
 let scheduler = [];
 
 /**
