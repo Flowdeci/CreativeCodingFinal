@@ -21,7 +21,7 @@ class City {
 
         // Schedule initial relationship update
         scheduleEvent("updateRelationships", this, 3000, true); // 10 seconds
-        scheduleEvent("trade", this, 5000, true);//
+        scheduleEvent("trade", this, 5000, true);
         scheduleEvent("statChange", this, 7000, true);
         scheduleEvent("attack", this, 10000, true);
     }
@@ -70,12 +70,15 @@ class City {
                 continue;
             }
 
-
-            //Determine relationship
+            // Determine relationship based on this city's stats
             if (this.aggression > 80 && this.aggression > city.diplomacy) {
                 this.addHostile(city);
+                // Ensure the other city also marks this city as hostile
+                city.addHostile(this);
             } else if (this.diplomacy > 50 && city.diplomacy > 50) {
                 this.addAlly(city);
+                // Ensure the other city also marks this city as an ally
+                city.addAlly(this);
             }
         }
     }
@@ -83,11 +86,11 @@ class City {
     trade() {
         for (let ally of this.allies) {
             // Simulate Trading Resources
-            let tradeAmount = random(1, 5);
+            let tradeAmount = random(1, 3);
             this.population += tradeAmount;
             ally.population += tradeAmount;
 
-            let techTransfer = random(1, 3);
+            let techTransfer = random(0.5, 2);
             this.technology += techTransfer;
             ally.technology += techTransfer;
 
@@ -103,14 +106,14 @@ class City {
     }
 
     attack(targetCity) {
-        if (this.hostiles.includes(targetCity)) {
+        if (this.hostiles.includes(targetCity) && this.militaryStrength > targetCity.defense) {
             //Calculate damage
             let damage = this.militaryStrength - targetCity.defense;
             damage = constrain(damage, 10, 100);
 
             //Reduce stats 
-            targetCity.defense -= random(-20, -30);
-            this.militaryStrength -= random(-30, -40);
+            targetCity.defense += random(-30, -20);
+            this.militaryStrength += random(-40, -30);
 
             //Apply damage to target city's population
             targetCity.population -= damage;
@@ -121,7 +124,7 @@ class City {
 
             // Check if the target city is destroyed
             if (targetCity.population <= 100) {
-                console.log(`City at (${targetCity.x}, ${targetCity.y}) has been destroyed!`);
+                console.log(`City at (${targetCity.id}) has been destroyed!`);
                 // Optionally, remove the city from the simulation
                 let index = cities.indexOf(targetCity);
                 if (index > -1) {
@@ -148,6 +151,8 @@ class City {
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
+
+        console.log("stat Changessss");
     }
 
     addHostile(city) {
