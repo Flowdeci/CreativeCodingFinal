@@ -139,7 +139,7 @@ function drawConnections() {
       for (let j = 0; j < city.allies.length; j++) {
         let ally = city.allies[j];
         if (ally && ally instanceof City) { // Ensure ally is valid
-          stroke(0, 0, 255); // Red for allies
+          stroke(0, 0, 255);
           strokeWeight(2);
           line(city.x, city.y, ally.x, ally.y);
         } else {

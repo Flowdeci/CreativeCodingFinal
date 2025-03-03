@@ -79,9 +79,31 @@ class City {
                 this.addHostile(city);
             } else if (this.diplomacy > 50 && city.diplomacy > 50) {
                 this.addAlly(city);
+                scheduleEvent("trade", this, 1000, false, { source: this, target: city });
             }
         }
     }
+
+    trade(allyCity) {
+        //Simulate Trading Resources
+        let tradeAmount = random(1, 5);
+        this.population += tradeAmount;
+        allyCity.population += tradeAmount;
+
+        let techTransfer = random(1, 3);
+        this.technology += techTransfer;
+        allyCity.technology += techTransfer;
+
+        //Constrain Values
+        this.population = constrain(this.population, 100, 1000);
+        allyCity.population = constrain(allyCity.population, 100, 1000);
+
+        this.technology = constrain(this.technology, 0, 100);
+        allyCity.technology = constrain(allyCity.technology, 0, 100);
+
+        console.log(`Trade between (${this.x}, ${this.y}) and (${allyCity.x}, ${allyCity.y})`);
+    }
+
 
     addHostile(city) {
         if (city instanceof City && city !== this && !this.hostiles.includes(city)) {
