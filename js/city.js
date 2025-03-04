@@ -39,6 +39,13 @@ class City {
         noStroke();
         ellipse(this.x, this.y, adjustedSize);
 
+        if (selectedCity === this) {
+            stroke(255, 200, 0); // Yellow glow
+            strokeWeight(3);
+            noFill();
+            ellipse(this.x, this.y, adjustedSize + 10); // Slightly larger outline
+        }
+
     }
 
     update(cities) {

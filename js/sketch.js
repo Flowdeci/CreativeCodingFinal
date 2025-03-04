@@ -43,6 +43,8 @@ function setup() {
   });
   resizeScreen();
 
+  setupUI()
+
   // Set the initial size of the Earth
   earthWidth = canvasContainer.width() * 0.8;
   earthHeight = canvasContainer.height() * 0.8;
@@ -107,11 +109,12 @@ function draw() {
   for (let city of cities) {
     city.update(cities);
     city.render();
+    text(city.id, city.x, city.y - city.citySize / 2 - 10);
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       fill(255);
       textSize(14);
       textAlign(CENTER);
-
+      noStroke();
       // Display city stats in the tooltip
       text(
         `ID: ${city.id}\nPop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%\n` +
@@ -129,8 +132,14 @@ function mousePressed() {
   for (let city of cities) {
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       selectedCity = city
+      document.getElementById("selected-city").textContent = `City ${city.id}`;
       console.log(`Selected city: ${city.id}`)
       console.log(`City Population: ${city.population}`);
+      break;
+
+    } else {
+      selectedCity = null;
+      document.getElementById("selected-city").textContent = `None`;
     }
   }
 }

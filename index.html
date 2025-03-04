@@ -25,6 +25,7 @@
 	<script src="js/scheduler.js"></script>
 	<script src="js/city.js"></script>
 	<script src="js/event.js"></script>
+	<script src="js/ui.js"></script>
 	<script src="./js/sketch.js" DEFER></script>
 </head>
 
@@ -44,20 +45,15 @@
 				</div>
 			</div>
 
-			<div class="minor-section">
-				<h2>Description</h2>
-				<p>What are you trying to acomplish with this experiment?</p>
-			</div>
-
-			<div class="minor-section">
-				<h2>Technical</h2>
-				<p>Describe in detail what you did technically and how it works?</p>
-			</div>
-
-			<div class="minor-section">
-				<h2>Reflection</h2>
-				<p>Each person that worked on the code should reflect on the process, the difficulties, and the
-					successes of the experiment.</p>
+			<div class="event-menu-container">
+				<div class="event-menu draggable">
+					<h3>Event Menu</h3>
+					<p>Selected City: <span id="selected-city">None</span></p>
+					<p>Press <strong>N</strong> to Nuke a City</p>
+					<p>Press <strong>T</strong> to Boost Technology</p>
+					<p>Press <strong>P</strong> to Trigger Plague</p>
+					<p>Press <strong>M</strong> for Meteor Strike</p>
+				</div>
 			</div>
 
 		</section>

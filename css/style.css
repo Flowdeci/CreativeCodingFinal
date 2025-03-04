@@ -24,3 +24,36 @@ body {
 body{
     background-color:rgba(175, 104, 241, 0.45);
 }
+
+
+.event-menu-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000; 
+}
+
+.event-menu {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px; 
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    user-select: none; 
+    min-width: 200px;
+}
+
+.event-menu h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    cursor: grab;
+}
+
+.event-menu p {
+    margin: 5px 0;
+}
+
+.draggable {
+    position: absolute; 
+}
