@@ -10,6 +10,9 @@ let minimumDistance = 150;
 
 let selectedCity = null;
 
+let isFlashing = false;  // Flag to track flashing
+let flashTime = 0;  // Timer to control how long the flash lasts
+
 function resizeScreen() {
   // Update the center of the canvas
   centerHorz = canvasContainer.width() / 2;
@@ -77,22 +80,36 @@ function setup() {
 
     cities.push(newCity);
   }
-
-
 }
 
 function isFarEnough(newX, newY) {
   for (let city of cities) {
     let distBetween = dist(newX, newY, city.x, city.y);
     if (distBetween < minimumDistance) {
-      return false;// Not far enough
+      return false; // Not far enough
     }
   }
   return true; // Far enough
 }
 
 function draw() {
-  background(30);
+  if (isFlashing) {
+    let elapsedTime = millis() - flashTime;
+
+    // Flash effect: Alternate between black and white
+    if (elapsedTime % 500 < 250) {
+      background(255);  // Flash to white
+    } else {
+      background(30);  // Flash to black
+    }
+
+    // Stop flashing after 2 seconds
+    if (elapsedTime > 2000) {
+      isFlashing = false;
+    }
+  } else {
+    background(30);  // Regular background
+  }
 
   // Draw the Earth
   fill(50, 150, 250);
@@ -113,7 +130,7 @@ function draw() {
     textSize(20);
     text(city.id, city.x, city.y - city.citySize / 2 - 10);
 
-    //Display tooltips if mouse is within city
+    // Display tooltips if mouse is within city
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       fill(255);
       textSize(14);
@@ -129,18 +146,16 @@ function draw() {
       );
     }
   }
-
 }
 
 function mousePressed() {
   for (let city of cities) {
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
-      selectedCity = city
+      selectedCity = city;
       document.getElementById("selected-city").textContent = `City ${city.id}`;
-      console.log(`Selected city: ${city.id}`)
+      console.log(`Selected city: ${city.id}`);
       console.log(`City Population: ${city.population}`);
       break;
-
     } else {
       selectedCity = null;
       document.getElementById("selected-city").textContent = `None`;
@@ -167,7 +182,7 @@ function drawConnections() {
       for (let j = 0; j < city.hostiles.length; j++) {
         let hostile = city.hostiles[j];
         if (hostile && hostile instanceof City) { // Ensure ally is valid
-          stroke(255, 0, 0); // Red for allies
+          stroke(255, 0, 0); // Red for hostiles
           strokeWeight(2);
           line(city.x, city.y, hostile.x, hostile.y);
         } else {
@@ -181,17 +196,19 @@ function drawConnections() {
 function keyPressed() {
   let targetCity = selectedCity || cities[floor(random(cities.length))];
   if (key === 'N' || key === 'n') {
-    console.log(`Nuking: ${targetCity.id}`)
-    nukeCity(targetCity);
+    console.log(`Nuking: ${targetCity.id}`);
+
+    // Start the flash effect
+    isFlashing = true;
+    flashTime = millis();  // Set the time when the flash starts
   } else if (key === 'T' || key === `t`) {
     console.log(`Techbosing: ${targetCity.id}`);
     techBoost(targetCity);
   } else if (key === 'P' || key === 'p') {
     console.log(`Triggering plague for: ${targetCity.id}`);
-    plague(targetCity)
+    plague(targetCity);
   } else if (key === 'M' || key === 'm') {
     console.log(`Mettttooooorrrrr STRIKKKE`);
     meteorStrike(cities);
   }
-
 }
