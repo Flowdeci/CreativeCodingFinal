@@ -112,6 +112,25 @@ class City {
         }
     }
 
+    applyStatChange() {
+        //Apply drastic stat changes
+        this.population += random(-50, 50);
+        this.technology += random(-10, 15);
+        this.aggression += random(-10, 10);
+        this.defense += random(-10, 20);
+        this.militaryStrength += random(-10, 20);
+        this.diplomacy += random(-10, 10);
+
+        //Constrain Values
+        this.population = constrain(this.population, 100, 1000);
+        this.technology = constrain(this.technology, 0, 100);
+        this.aggression = constrain(this.aggression, 0, 100);
+        this.defense = constrain(this.defense, 0, 100);
+        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+        this.diplomacy = constrain(this.diplomacy, 0, 100);
+
+    }
+
     attack(targetCity) {
         if (this.hostiles.includes(targetCity) && this.militaryStrength > targetCity.defense) {
             //Calculate damage
@@ -138,11 +157,7 @@ class City {
                     cities.splice(index, 1);
                 }
             }
-
         }
-    }
-
-    applyStatChange() {
         //Apply drastic stat changes
         this.population += random(-50, 50);
         this.technology += random(-10, 15);
