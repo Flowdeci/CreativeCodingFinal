@@ -158,8 +158,6 @@ class City {
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
-
-        console.log("stat Changessss");
     }
 
     addHostile(city) {

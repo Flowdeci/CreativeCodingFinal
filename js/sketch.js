@@ -109,7 +109,11 @@ function draw() {
   for (let city of cities) {
     city.update(cities);
     city.render();
+
+    textSize(20);
     text(city.id, city.x, city.y - city.citySize / 2 - 10);
+
+    //Display tooltips if mouse is within city
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       fill(255);
       textSize(14);

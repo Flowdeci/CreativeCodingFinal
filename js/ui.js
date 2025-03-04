@@ -5,10 +5,10 @@ let offsetX, offsetY;
 let draggableMenu;
 
 function setupUI() {
-    // Get the draggable menu element
+    // Get the drabble menu
     draggableMenu = document.querySelector('.draggable');
 
-    // Load saved position
+    // load previous postiion
     const savedLeft = localStorage.getItem('menuLeft');
     const savedTop = localStorage.getItem('menuTop');
     if (savedLeft && savedTop) {
@@ -16,7 +16,7 @@ function setupUI() {
         draggableMenu.style.top = savedTop;
     }
 
-    // Add event listeners for dragging
+    // Events for dragging
     draggableMenu.addEventListener('mousedown', startDrag);
     document.addEventListener('mousemove', drag);
     document.addEventListener('mouseup', endDrag);
@@ -39,7 +39,7 @@ function drag(e) {
 
 function endDrag() {
     isDragging = false;
-    // Save position
+    // Save last position
     localStorage.setItem('menuLeft', draggableMenu.style.left);
     localStorage.setItem('menuTop', draggableMenu.style.top);
 }
