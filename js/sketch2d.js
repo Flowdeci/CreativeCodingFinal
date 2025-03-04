@@ -13,7 +13,7 @@ let selectedCity = null;
 let isFlashing = false;  // Flag to track flashing
 let flashTime = 0;  // Timer to control how long the flash lasts
 
-
+let isWebGL = false;
 
 function resizeScreen() {
   // Update the center of the canvas
@@ -42,49 +42,51 @@ function resizeScreen() {
 
 function setup() {
 
-  canvasContainer = $("#canvas-container");
-  let canvas = createCanvas(canvasContainer.width(), canvasContainer.height(), WEBGL);
-  canvas.parent("canvas-container");
+    canvasContainer = $("#canvas-container");
+    let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
+    canvas.parent("canvas-container");
 
-  $(window).resize(function () {
+    $(window).resize(function () {
+      resizeScreen();
+    });
     resizeScreen();
-  });
-  resizeScreen();
 
-  setupUI()
+    setupUI()
 
-  // Set the initial size of the Earth
-  earthWidth = canvasContainer.width() * 0.8;
-  earthHeight = canvasContainer.height() * 0.8;
+    // Set the initial size of the Earth
+    earthWidth = canvasContainer.width() * 0.8;
+    earthHeight = canvasContainer.height() * 0.8;
 
-  // Generate Initial Cities
-  for (let i = 0; i < citiesSize; i++) {
-    let relativeX, relativeY, x, y;
-    let validPosition = false;
+    // Generate Initial Cities
+    for (let i = 0; i < citiesSize; i++) {
+      let relativeX, relativeY, x, y;
+      let validPosition = false;
 
-    // Retry until a valid position is found
-    while (!validPosition) {
-      relativeX = random(0.1, 0.9); // 10% to 90% of Earth width
-      relativeY = random(0.1, 0.9); // 10% to 90% of Earth height
+      // Retry until a valid position is found
+      while (!validPosition) {
+        relativeX = random(0.1, 0.9); // 10% to 90% of Earth width
+        relativeY = random(0.1, 0.9); // 10% to 90% of Earth height
 
-      // Calculate absolute positions based on relative positions
-      x = relativeX * random(-(earthWidth / 2), earthWidth / 2);
-      y = relativeY * random(-(earthHeight / 2), earthHeight / 2);
+        // Calculate absolute positions based on relative positions
+        x = centerHorz - earthWidth / 2 + relativeX * earthWidth;
+        y = centerVert - earthHeight / 2 + relativeY * earthHeight;
 
-      // Check if the position is far enough from existing cities
-      if (isFarEnough(x, y)) {
-        validPosition = true;
+        // Check if the position is far enough from existing cities
+        if (isFarEnough(x, y)) {
+          validPosition = true;
+        }
       }
+
+      // Create city with relative positions
+      let population = random(100, 1000);
+      let newCity = new City(x, y, population);
+      newCity.relativeX = relativeX;
+      newCity.relativeY = relativeY;
+
+      cities.push(newCity);
     }
+  
 
-    // Create city with relative positions
-    let population = random(100, 1000);
-    let newCity = new City(x, y, population);
-    newCity.relativeX = relativeX;
-    newCity.relativeY = relativeY;
-
-    cities.push(newCity);
-  }
 
 }
 
@@ -99,16 +101,61 @@ function isFarEnough(newX, newY) {
 }
 
 function draw() {
-  background("lightblue");
-  // Enable orbiting with the mouse.
-  orbitControl();
+    if (isFlashing) {
+      let elapsedTime = millis() - flashTime;
 
-  noStroke();
-  fill("darkgreen");
-  plane(earthWidth, earthHeight);
-  translate(cities[0].x, cities[0].y, 25)
-  fill('pink');
-  box(50);
+      // Flash effect: Alternate between black and white
+      if (elapsedTime % 500 < 250) {
+        background(255);  // Flash to white
+      } else {
+        background(30);  // Flash to black
+      }
+
+      // Stop flashing after 2 seconds
+      if (elapsedTime > 2000) {
+        isFlashing = false;
+      }
+    } else {
+      background(30);  // Regular background
+    }
+
+    // Draw the Earth
+    fill(50, 150, 250);
+    noStroke();
+    rectMode(CENTER);
+    rect(centerHorz, centerVert, earthWidth, earthHeight);
+
+    // Process scheduled events
+    processEvents();
+
+    // Draw connections between cities
+    drawConnections();
+
+    for (let city of cities) {
+      city.update(cities);
+      city.render();
+
+      textSize(20);
+      text(city.id, city.x, city.y - city.citySize / 2 - 10);
+
+      // Display tooltips if mouse is within city
+      if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
+        fill(255);
+        textSize(14);
+        textAlign(CENTER);
+        noStroke();
+        // Display city stats in the tooltip
+        text(
+          `ID: ${city.id}\nPop: ${floor(city.population)}\nStability: ${floor(city.stability * 100)}%\n` +
+          `Tech: ${floor(city.technology)}\nAgg: ${floor(city.aggression)}\n` +
+          `Def: ${floor(city.defense)}\nMil: ${floor(city.militaryStrength)}\nDip: ${floor(city.diplomacy)}`,
+          city.x,
+          city.y - city.citySize / 2 - 10
+        );
+      }
+    }
+  
+
 }
 
 function mousePressed() {
