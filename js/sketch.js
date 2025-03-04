@@ -197,10 +197,9 @@ function keyPressed() {
   let targetCity = selectedCity || cities[floor(random(cities.length))];
   if (key === 'N' || key === 'n') {
     console.log(`Nuking: ${targetCity.id}`);
-
-    // Start the flash effect
+    nukeCity(targetCity);
     isFlashing = true;
-    flashTime = millis();  // Set the time when the flash starts
+    flashTime = millis();
   } else if (key === 'T' || key === `t`) {
     console.log(`Techbosing: ${targetCity.id}`);
     techBoost(targetCity);
