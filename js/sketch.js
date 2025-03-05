@@ -33,8 +33,8 @@ function resizeScreen() {
 
   // Recalculate absolute positions of cities based on their relative position
   for (let city of cities) {
-    city.x = centerHorz - earthWidth / 2 + city.relativeX * earthWidth;
-    city.y = centerVert - earthHeight / 2 + city.relativeY * earthHeight;
+    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth, earthWidth);
+    city.y = map(city.relativeY, 0.1, -0.9, -earthHeight, earthHeight)
   }
 }
 
@@ -50,6 +50,7 @@ function setup() {
     resizeScreen();
   });
   resizeScreen();
+
 
   setupUI()
 
@@ -99,16 +100,33 @@ function isFarEnough(newX, newY) {
 }
 
 function draw() {
-  background("lightblue");
   // Enable orbiting with the mouse.
   orbitControl();
+  //Background
+  background("lightblue");
 
+  //Earth Plane
   noStroke();
   fill("darkgreen");
   plane(earthWidth, earthHeight);
-  translate(cities[0].x, cities[0].y, 25)
-  fill('pink');
-  box(50);
+
+  //Axis
+  // Draw axes at the origin
+  stroke(255, 0, 0); // X-axis (red)
+  line(0, 0, 0, 100, 0, 0);
+  stroke(0, 255, 0); // Y-axis (green)
+  line(0, 0, 0, 0, 100, 0);
+  stroke(0, 0, 255); // Z-axis (blue)
+  line(0, 0, 0, 0, 0, 100);
+
+  //Draw all the cities
+  for (let i = 0; i < cities.length; i++) {
+    push();
+    cities[i].render();
+    pop();
+  }
+
+
 }
 
 function mousePressed() {
@@ -174,3 +192,5 @@ function keyPressed() {
     meteorStrike(cities);
   }
 }
+
+

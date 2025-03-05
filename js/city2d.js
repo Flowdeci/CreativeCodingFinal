@@ -1,10 +1,4 @@
-let era = [
-    "village",
-    "kingdom",
-    "empire",
-    "city",
-    "society"
-]
+
 class City {
     static nextId = 1;
 
@@ -12,9 +6,6 @@ class City {
         this.id = City.nextId++;
         this.x = x;
         this.y = y;
-        this.width = random(25, 50);
-        this.level = era[0];
-        this.height = random(50, 150);
         this.population = population;
         this.citySize = map(this.population, 100, 1000, 40, 100);
         this.stability = this.calculateStability()
@@ -46,8 +37,7 @@ class City {
         //Draw City
         fill(cityColor);
         noStroke();
-        translate(this.x, this.y, this.height / 2)
-        box(this.width, this.width, this.height);
+        ellipse(this.x, this.y, adjustedSize);
 
         if (selectedCity === this) {
             stroke(255, 200, 0); // Yellow glow
