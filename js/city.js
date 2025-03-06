@@ -6,7 +6,7 @@ let era = [
     "society"
 ]
 class City {
-    static nextId = 1;
+    static nextId = 0;
 
     constructor(x, y, population) {
         this.id = City.nextId++;

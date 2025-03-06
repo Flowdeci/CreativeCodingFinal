@@ -33,8 +33,8 @@ function resizeScreen() {
 
   // Recalculate absolute positions of cities based on their relative position
   for (let city of cities) {
-    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth/2, earthWidth/2);
-    city.y = map(city.relativeY, 0.1, -0.9, -earthHeight/2, earthHeight/2)
+    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth / 2, earthWidth / 2);
+    city.y = map(city.relativeY, 0.1, 0.9, -earthHeight / 2, earthHeight / 2)
   }
 }
 
@@ -130,6 +130,8 @@ function draw() {
 }
 
 function mousePressed() {
+  console.log("Mouse pressed");
+  console.log(mouseX, mouseY)
   for (let city of cities) {
     if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
       selectedCity = city;
@@ -190,6 +192,40 @@ function keyPressed() {
   } else if (key === 'M' || key === 'm') {
     console.log(`Mettttooooorrrrr STRIKKKE`);
     meteorStrike(cities);
+  }
+  //Citiy Selection
+  else if (key === 'Q' || key === 'q') {
+
+    if (selectedCity == null) {
+      selectedCity = cities[cities.length-1]
+      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
+    }
+    else if (selectedCity.id > 0) {
+      
+      selectedCity = cities[selectedCity.id - 1]
+      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
+    }else if (selectedCity.id==0){
+      selectedCity=null;
+      document.getElementById("selected-city").textContent = `None`;
+
+    }
+
+  }else if (key === 'E' || key === 'e') {
+
+    if (selectedCity == null) {
+      selectedCity = cities[0]
+      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
+    }
+    else if (selectedCity.id < cities.length-1) {
+      
+      selectedCity = cities[selectedCity.id + 1]
+      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
+    }else if (selectedCity.id==cities.length-1){
+      selectedCity=null;
+      document.getElementById("selected-city").textContent = `None`;
+
+    }
+
   }
 }
 
