@@ -5,6 +5,7 @@ let era = [
     "city",
     "society"
 ]
+
 class City {
     static nextId = 0;
 
@@ -14,7 +15,7 @@ class City {
         this.y = y;
         this.width = random(25, 50);
         this.level = era[0];
-        this.height = random(50, 150);
+        this.height = random(20, 50);
         this.population = population;
         this.citySize = map(this.population, 100, 1000, 40, 100);
         this.stability = this.calculateStability()
@@ -43,11 +44,13 @@ class City {
         // Pulsing effect
         let pulse = sin(frameCount * 0.1) * 2;
         let adjustedSize = this.citySize + pulse;
+
         //Draw City
+        push()
         fill(cityColor);
         noStroke();
-        translate(this.x, this.y, this.height / 2)
-        box(this.width, this.width, this.height);
+        this.villageRender();
+        pop()
 
         if (selectedCity === this) {
             stroke(255, 200, 0); // Yellow glow
@@ -66,11 +69,63 @@ class City {
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
 
-
-
         //Update stability
         this.stability = this.calculateStability();
     }
+
+    villageRender() {
+        //Based off population draw more cones
+        // for (let i = 0; i < 5; i++) {
+        //     push()
+        //     translate(this.x+ i * 20, this.y+ i * 20, this.height / 2);
+        //     rotateX(HALF_PI)
+
+        //     cone(20, this.height);
+        //     pop()
+        // }
+
+        //Main Hut
+
+        push()
+        translate(this.x, this.y, (this.height + 30) / 2);
+        rotateX(HALF_PI)
+        cone(20, this.height + 30);
+        pop()
+
+        if (this.stability > 0.2) {
+            push()
+            translate(this.x + 30, this.y + 30, this.height / 2);
+            rotateX(HALF_PI)
+            cone(20, this.height);
+            pop()
+
+            if (this.stability > 0.4) {
+                push()
+                translate(this.x - 30, this.y + 30, this.height / 2);
+                rotateX(HALF_PI)
+                cone(20, this.height);
+                pop()
+                if (this.stability > 0.6) {
+
+                    push()
+                    translate(this.x + 30, this.y - 30, this.height / 2);
+                    rotateX(HALF_PI)
+                    cone(20, this.height);
+                    pop()
+                    if (this.stability > 0.8) {
+                        push()
+                        translate(this.x - 30, this.y - 30, this.height / 2);
+                        rotateX(HALF_PI)
+                        cone(20, this.height);
+                        pop()
+                    }
+                }
+            }
+
+        }
+
+    }
+
 
     calculateStability() {
         return map(this.population, 100, 1000, 0, 1);;

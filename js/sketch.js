@@ -33,12 +33,12 @@ function resizeScreen() {
 
   // Recalculate absolute positions of cities based on their relative position
   for (let city of cities) {
-    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth / 2, earthWidth / 2);
-    city.y = map(city.relativeY, 0.1, 0.9, -earthHeight / 2, earthHeight / 2)
+
+    //city.x = (earthWidth / 2 + city.relativeX * (-(earthHeight / 2) - (earthHeight / 2)))
+    city.x = map(city.relativeX, 0.1, 0.9, -(earthWidth / 2), earthWidth / 2);
+    city.y = map(city.relativeY, 0.1, 0.9, -(earthHeight / 2), earthHeight / 2)
   }
 }
-
-
 
 function setup() {
 
@@ -110,14 +110,14 @@ function draw() {
   fill("darkgreen");
   plane(earthWidth, earthHeight);
 
-  //Axis
-  // Draw axes at the origin
-  stroke(255, 0, 0); // X-axis (red)
-  line(0, 0, 0, 100, 0, 0);
-  stroke(0, 255, 0); // Y-axis (green)
-  line(0, 0, 0, 0, 100, 0);
-  stroke(0, 0, 255); // Z-axis (blue)
-  line(0, 0, 0, 0, 0, 100);
+  // //Axis
+  // // Draw axes at the origin
+  // stroke(255, 0, 0); // X-axis (red)
+  // line(0, 0, 0, 100, 0, 0);
+  // stroke(0, 255, 0); // Y-axis (green)
+  // line(0, 0, 0, 0, 100, 0);
+  // stroke(0, 0, 255); // Z-axis (blue)
+  // line(0, 0, 0, 0, 0, 100);
 
   //Draw all the cities
   for (let i = 0; i < cities.length; i++) {
@@ -127,23 +127,6 @@ function draw() {
   }
 
 
-}
-
-function mousePressed() {
-  console.log("Mouse pressed");
-  console.log(mouseX, mouseY)
-  for (let city of cities) {
-    if (dist(mouseX, mouseY, city.x, city.y) < city.citySize / 2) {
-      selectedCity = city;
-      document.getElementById("selected-city").textContent = `City ${city.id}`;
-      console.log(`Selected city: ${city.id}`);
-      console.log(`City Population: ${city.population}`);
-      break;
-    } else {
-      selectedCity = null;
-      document.getElementById("selected-city").textContent = `None`;
-    }
-  }
 }
 
 function drawConnections() {
@@ -197,31 +180,31 @@ function keyPressed() {
   else if (key === 'Q' || key === 'q') {
 
     if (selectedCity == null) {
-      selectedCity = cities[cities.length-1]
+      selectedCity = cities[cities.length - 1]
       document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
     }
     else if (selectedCity.id > 0) {
-      
+
       selectedCity = cities[selectedCity.id - 1]
       document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    }else if (selectedCity.id==0){
-      selectedCity=null;
+    } else if (selectedCity.id == 0) {
+      selectedCity = null;
       document.getElementById("selected-city").textContent = `None`;
 
     }
 
-  }else if (key === 'E' || key === 'e') {
+  } else if (key === 'E' || key === 'e') {
 
     if (selectedCity == null) {
       selectedCity = cities[0]
       document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
     }
-    else if (selectedCity.id < cities.length-1) {
-      
+    else if (selectedCity.id < cities.length - 1) {
+
       selectedCity = cities[selectedCity.id + 1]
       document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    }else if (selectedCity.id==cities.length-1){
-      selectedCity=null;
+    } else if (selectedCity.id == cities.length - 1) {
+      selectedCity = null;
       document.getElementById("selected-city").textContent = `None`;
 
     }
