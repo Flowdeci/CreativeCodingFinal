@@ -33,8 +33,8 @@ function resizeScreen() {
 
   // Recalculate absolute positions of cities based on their relative position
   for (let city of cities) {
-    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth, earthWidth);
-    city.y = map(city.relativeY, 0.1, -0.9, -earthHeight, earthHeight)
+    city.x = map(city.relativeX, 0.1, 0.9, -earthWidth/2, earthWidth/2);
+    city.y = map(city.relativeY, 0.1, -0.9, -earthHeight/2, earthHeight/2)
   }
 }
 
