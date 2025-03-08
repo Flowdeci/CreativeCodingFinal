@@ -1,10 +1,3 @@
-let era = [
-    "village",
-    "kingdom",
-    "empire",
-    "city",
-    "society"
-]
 
 class City {
     static nextId = 0;
@@ -13,9 +6,7 @@ class City {
         this.id = City.nextId++;
         this.x = x;
         this.y = y;
-        this.width = random(25, 50);
-        this.level = era[0];
-        this.height = random(20, 50);
+
         this.population = population;
         this.citySize = map(this.population, 100, 1000, 40, 100);
         this.stability = this.calculateStability()
@@ -34,6 +25,14 @@ class City {
         scheduleEvent("trade", this, 5000, true);
         scheduleEvent("statChange", this, 7000, true);
         scheduleEvent("attack", this, 10000, true);
+
+        // Initialize building properties
+        this.tiers = floor(map(this.technology, 0, 100, 1, 5)); // Tiers based on technology
+        this.width = random(25, 50);
+        this.target_heights = [];
+        this.dimensions = [];
+        this.total_height = 0;
+        this.initializeBuilding()
     }
 
     render() {
@@ -49,7 +48,7 @@ class City {
         push()
         fill(cityColor);
         noStroke();
-        this.villageRender();
+        this.renderBuilding();
         pop()
 
         if (selectedCity === this) {
@@ -71,61 +70,62 @@ class City {
 
         //Update stability
         this.stability = this.calculateStability();
-    }
 
-    villageRender() {
-        //Based off population draw more cones
-        // for (let i = 0; i < 5; i++) {
-        //     push()
-        //     translate(this.x+ i * 20, this.y+ i * 20, this.height / 2);
-        //     rotateX(HALF_PI)
-
-        //     cone(20, this.height);
-        //     pop()
-        // }
-
-        //Main Hut
-
-        push()
-        translate(this.x, this.y, (this.height + 30) / 2);
-        rotateX(HALF_PI)
-        cone(20, this.height + 30);
-        pop()
-
-        if (this.stability > 0.2) {
-            push()
-            translate(this.x + 30, this.y + 30, this.height / 2);
-            rotateX(HALF_PI)
-            cone(20, this.height);
-            pop()
-
-            if (this.stability > 0.4) {
-                push()
-                translate(this.x - 30, this.y + 30, this.height / 2);
-                rotateX(HALF_PI)
-                cone(20, this.height);
-                pop()
-                if (this.stability > 0.6) {
-
-                    push()
-                    translate(this.x + 30, this.y - 30, this.height / 2);
-                    rotateX(HALF_PI)
-                    cone(20, this.height);
-                    pop()
-                    if (this.stability > 0.8) {
-                        push()
-                        translate(this.x - 30, this.y - 30, this.height / 2);
-                        rotateX(HALF_PI)
-                        cone(20, this.height);
-                        pop()
-                    }
+        // Grow buildings if population increases
+        if (this.population > this.previousPopulation) {
+            for (let iter = 0; iter < this.tiers; iter++) {
+                if (this.dimensions[iter].z < this.target_heights[iter]) {
+                    this.dimensions[iter].z += 1; // Grow the building
+                    this.total_height++;
                 }
             }
-
         }
-
+        this.previousPopulation = this.population; // Track population for next update
     }
 
+    initializeBuilding() {
+        let size_val = 1;
+        // Base floor height is proportional to population
+        let floor_height = map(this.population, 100, 1000, 30, 100);
+        for (let ctr = 0; ctr < this.tiers; ctr++) {
+            this.dimensions.push(createVector(this.width * size_val, this.width * size_val));
+            this.target_heights.push(floor_height);
+            // Reduce height and size for the next tier
+            floor_height = (1 - (random() * (1 / 6) + 1 / 6)) * floor_height;
+            size_val = (1 - (random() * (1 / 6) + 1 / 6)) * size_val;
+        }
+    }
+
+    renderBuilding() {
+        for (let iter = 0; iter < this.tiers; iter++) {
+            push();
+            translate(this.x, this.y, this.dimensions[iter].z / 2 + this.sumHeights(iter));
+
+            // Apply instability effect
+            if (this.stability < 0.5) {
+                let tilt = map(this.stability, 0, 0.5, 10, 0); // Tilt buildings if unstable
+                rotateX(radians(tilt * random(-1, 1)));
+                rotateZ(radians(tilt * random(-1, 1)));
+            }
+
+            if (this.total_height >= this.sumHeights(iter) && this.total_height < this.sumHeights(iter + 1)) {
+                this.dimensions[iter].z++; // Grow the building
+                this.total_height++;
+            }
+            if (this.dimensions[iter].z > 0) {
+                box(this.dimensions[iter].x, this.dimensions[iter].y, this.dimensions[iter].z); // Draw the building
+            }
+            pop();
+        }
+    }
+
+    sumHeights(num_elements) {
+        let running_total = 0;
+        for (let ctr = 0; ctr < num_elements; ctr++) {
+            running_total += this.target_heights[ctr];
+        }
+        return running_total;
+    }
 
     calculateStability() {
         return map(this.population, 100, 1000, 0, 1);;
@@ -178,22 +178,23 @@ class City {
     }
 
     applyStatChange() {
-        //Apply drastic stat changes
-        this.population += random(-50, 50);
-        this.technology += random(-10, 15);
-        this.aggression += random(-10, 10);
-        this.defense += random(-10, 20);
-        this.militaryStrength += random(-10, 20);
-        this.diplomacy += random(-10, 10);
+        // Technology boosts population growth
+        this.population += random(-10, 10) + map(this.technology, 0, 100, 0, 5);
 
-        //Constrain Values
+        // Aggression reduces stability
+        this.stability -= map(this.aggression, 0, 100, 0, 0.1);
+
+        // Diplomacy boosts population and technology
+        this.population += map(this.diplomacy, 0, 100, 0, 3);
+        this.technology += map(this.diplomacy, 0, 100, 0, 2);
+
+        // Constrain values
         this.population = constrain(this.population, 100, 1000);
         this.technology = constrain(this.technology, 0, 100);
         this.aggression = constrain(this.aggression, 0, 100);
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
-
     }
 
     attack(targetCity) {
