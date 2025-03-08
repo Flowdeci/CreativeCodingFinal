@@ -122,7 +122,9 @@ function draw() {
   //Draw all the cities
   for (let i = 0; i < cities.length; i++) {
     push();
+    cities[i].update();
     cities[i].render();
+    
     pop();
   }
 
