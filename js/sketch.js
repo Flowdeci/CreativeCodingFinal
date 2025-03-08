@@ -110,23 +110,16 @@ function draw() {
   fill("darkgreen");
   plane(earthWidth, earthHeight);
 
-  // //Axis
-  // // Draw axes at the origin
-  // stroke(255, 0, 0); // X-axis (red)
-  // line(0, 0, 0, 100, 0, 0);
-  // stroke(0, 255, 0); // Y-axis (green)
-  // line(0, 0, 0, 0, 100, 0);
-  // stroke(0, 0, 255); // Z-axis (blue)
-  // line(0, 0, 0, 0, 0, 100);
-
   //Draw all the cities
   for (let i = 0; i < cities.length; i++) {
     push();
     cities[i].update();
     cities[i].render();
-    
+
     pop();
   }
+
+  updateCityStatsMenu()
 
 
 }
@@ -169,48 +162,52 @@ function keyPressed() {
     isFlashing = true;
     flashTime = millis();
   } else if (key === 'T' || key === `t`) {
-    console.log(`Techbosing: ${targetCity.id}`);
+    console.log(`Tech boosting: ${targetCity.id}`);
     techBoost(targetCity);
   } else if (key === 'P' || key === 'p') {
     console.log(`Triggering plague for: ${targetCity.id}`);
     plague(targetCity);
   } else if (key === 'M' || key === 'm') {
-    console.log(`Mettttooooorrrrr STRIKKKE`);
+    console.log(`Meteor strike!`);
     meteorStrike(cities);
-  }
-  //Citiy Selection
-  else if (key === 'Q' || key === 'q') {
-
+  } else if (key === 'Q' || key === 'q') {
+    // Navigate to previous city
     if (selectedCity == null) {
-      selectedCity = cities[cities.length - 1]
-      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    }
-    else if (selectedCity.id > 0) {
-
-      selectedCity = cities[selectedCity.id - 1]
-      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    } else if (selectedCity.id == 0) {
+      selectedCity = cities[cities.length - 1];
+    } else if (selectedCity.id > 0) {
+      selectedCity = cities[selectedCity.id - 1];
+    } else {
       selectedCity = null;
-      document.getElementById("selected-city").textContent = `None`;
-
     }
-
+    updateCityStatsMenu();
   } else if (key === 'E' || key === 'e') {
-
+    // Navigate to next city
     if (selectedCity == null) {
-      selectedCity = cities[0]
-      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    }
-    else if (selectedCity.id < cities.length - 1) {
-
-      selectedCity = cities[selectedCity.id + 1]
-      document.getElementById("selected-city").textContent = `City ${selectedCity.id}`;
-    } else if (selectedCity.id == cities.length - 1) {
+      selectedCity = cities[0];
+    } else if (selectedCity.id < cities.length - 1) {
+      selectedCity = cities[selectedCity.id + 1];
+    } else {
       selectedCity = null;
-      document.getElementById("selected-city").textContent = `None`;
-
     }
+    updateCityStatsMenu();
+  }
+}
 
+function updateCityStatsMenu() {
+  const statsContent = document.getElementById('city-stats-content');
+  if (selectedCity) {
+    statsContent.innerHTML = `
+      <strong>City ID:</strong> ${selectedCity.id}<br>
+      <strong>Population:</strong> ${selectedCity.population.toFixed(0)}<br>
+      <strong>Technology:</strong> ${selectedCity.technology.toFixed(2)}<br>
+      <strong>Aggression:</strong> ${selectedCity.aggression.toFixed(2)}<br>
+      <strong>Defense:</strong> ${selectedCity.defense.toFixed(2)}<br>
+      <strong>Military Strength:</strong> ${selectedCity.militaryStrength.toFixed(2)}<br>
+      <strong>Diplomacy:</strong> ${selectedCity.diplomacy.toFixed(2)}<br>
+      <strong>Stability:</strong> ${selectedCity.stability.toFixed(2)}
+    `;
+  } else {
+    statsContent.textContent = 'Select a city to view stats.';
   }
 }
 

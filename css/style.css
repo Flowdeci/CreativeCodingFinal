@@ -57,3 +57,29 @@ body{
 .draggable {
     position: absolute; 
 }
+
+.city-stats-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    user-select: none;
+    min-width: 200px;
+    max-width: 200px;
+  }
+  
+  .city-stats-menu h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    cursor: grab;
+  }
+  
+  .city-stats-menu p {
+    margin: 5px 0;
+  }
