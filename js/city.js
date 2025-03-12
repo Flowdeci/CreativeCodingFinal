@@ -1,7 +1,5 @@
-
 class City {
     static nextId = 0;
-
     constructor(x, y, population) {
         this.id = City.nextId++;
         this.x = x;
@@ -34,6 +32,27 @@ class City {
         this.total_height = 0;
         this.previousPopulation = population
         this.initializeBuilding()
+
+        //Particle System for plague
+        this.plagueParticles = new ParticleSystem(this.x, this.y, this.total_height, color(0, 255, 0));
+        this.isPlagued = false
+    }
+
+    triggerPlagueEffect() {
+        this.isPlagued = true;
+
+        const plagueInterval = setInterval(() => {
+            if (this.isPlagued) {
+                this.plagueParticles.emit();
+            }
+        }, 100)// emit particels every 100ms
+
+        //stop the plague effect
+        setTimeout(() => {
+            this.isPlagued = false
+            clearInterval(plagueInterval);
+        }, 7000)
+
     }
 
     render() {
@@ -59,40 +78,46 @@ class City {
             ellipse(this.x, this.y, adjustedSize + 10); // Slightly larger outline
         }
 
+
+        this.plagueParticles.update();
+
+
     }
 
     update(cities) {
-    // Constrain values
-    this.technology = constrain(this.technology, 0, 100);
-    this.aggression = constrain(this.aggression, 0, 100);
-    this.defense = constrain(this.defense, 0, 100);
-    this.militaryStrength = constrain(this.militaryStrength, 0, 100);
-    this.diplomacy = constrain(this.diplomacy, 0, 100);
+        // Constrain values
+        this.technology = constrain(this.technology, 0, 100);
+        this.aggression = constrain(this.aggression, 0, 100);
+        this.defense = constrain(this.defense, 0, 100);
+        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+        this.diplomacy = constrain(this.diplomacy, 0, 100);
 
-    // Update stability
-    this.stability = this.calculateStability();
+        // Update stability
+        this.stability = this.calculateStability();
 
-    // Check if population has changed significantly (e.g., by more than 10)
-    if (abs(this.population - this.previousPopulation) > 10) {
-        // Reinitialize buildings based on new population
-        this.initializeBuilding();
-        this.previousPopulation = this.population; // Track population for next update
-    }
+        // Check if population has changed significantly (e.g., by more than 10)
+        if (abs(this.population - this.previousPopulation) > 10) {
+            // Reinitialize buildings based on new population
+            this.initializeBuilding();
+            this.previousPopulation = this.population; // Track population for next update
+        }
 
-    // Grow or shrink buildings based on population
-    for (let iter = 0; iter < this.tiers; iter++) {
-        let targetHeight = this.target_heights[iter];
+        // Grow or shrink buildings based on population
+        for (let iter = 0; iter < this.tiers; iter++) {
+            let targetHeight = this.target_heights[iter];
 
-        // Only grow the current tier if the previous tier has reached its target height
-        if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
-            if (this.dimensions[iter].z < targetHeight) {
-                this.dimensions[iter].z += 1; // Grow the building
-            } else if (this.dimensions[iter].z > targetHeight) {
-                this.dimensions[iter].z -= 1; // Shrink the building
+            // Only grow the current tier if the previous tier has reached its target height
+            if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
+                if (this.dimensions[iter].z < targetHeight) {
+                    this.dimensions[iter].z += 1; // Grow the building
+                } else if (this.dimensions[iter].z > targetHeight) {
+                    this.dimensions[iter].z -= 1; // Shrink the building
+                }
             }
         }
+
+
     }
-}
 
 
     initializeBuilding() {
@@ -100,17 +125,25 @@ class City {
         let size_val = 1;
         // Base floor height is proportional to population
         let floor_height = map(this.population, 100, 1000, 30, 100);
+        this.total_height = 0
         this.dimensions = []; // Reset dimensions
         this.target_heights = []; // Reset target heights
         for (let ctr = 0; ctr < this.tiers; ctr++) {
             this.dimensions.push(createVector(this.width * size_val, this.width * size_val));
             this.target_heights.push(floor_height);
-            //console.log(`Tier ${ctr}: dimensions=${this.dimensions[ctr]}, height=${floor_height}`);
+
+            // Add the height of this tier to the total city height
+            this.total_height += floor_height;
 
             // Reduce height and size for the next tier
             floor_height = (1 - (random() * (1 / 6) + 1 / 6)) * floor_height;
             size_val = (1 - (random() * (1 / 6) + 1 / 6)) * size_val;
         }
+
+        if (this.plagueParticles) {
+            this.plagueParticles.updateCityHeight(this.total_height);
+        }
+
     }
 
     renderBuilding() {
@@ -118,18 +151,18 @@ class City {
             push();
             // Position each tier on top of the previous one
             translate(this.x, this.y, this.sumHeights(iter) + this.dimensions[iter].z / 2);
-    
+
             // Apply instability effect
             if (this.stability < 0.5) {
                 let tilt = map(this.stability, 0, 0.5, 10, 0); // Tilt buildings if unstable
                 rotateX(radians(tilt * random(-1, 1)));
                 rotateZ(radians(tilt * random(-1, 1)));
             }
-    
+
             // Color based on stability
             let stabilityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
             fill(stabilityColor);
-    
+
             if (this.dimensions[iter].z > 0) {
                 box(this.dimensions[iter].x, this.dimensions[iter].y, this.dimensions[iter].z); // Draw the building
             }

@@ -35,6 +35,10 @@ function plague(city) {
         //Reduce stablity and population
         city.population *= 0.6;
         city.stability *= 0.7;
+
+        //Trigger plague visuals
+        city.triggerPlagueEffect();
+
         //Affect any ally cities with plague
         if (city.allies) {
             for (let i = 0; i < city.allies.length; i++) {
