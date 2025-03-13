@@ -12,14 +12,19 @@ class City {
         this.allies = []
 
         //City Stats
-        this.technology = random(0, 100);       // Represents the city's level of advancement
-        this.aggression = random(0, 100);      // Determines how likely the city is to attack others
-        this.defense = random(0, 100);         // Represents the city's ability to fend off attacks
-        this.militaryStrength = random(0, 100); // Determines the strength of the city's army
-        this.diplomacy = random(0, 100);       // Determines how likely the city is to form alliances
+        /** Represents the city's level of advancement*/
+        this.technology = random(0, 100);
+        /** Determines how likely the city is to attack others*/
+        this.aggression = random(0, 100);
+        /** Represents the city's ability to fend off attacks*/
+        this.defense = random(0, 100);
+        /**Determines the strength of the city's army */
+        this.militaryStrength = random(0, 100);
+        /**Determines how likely the city is to form alliances */
+        this.diplomacy = random(0, 100);
 
         // Schedule initial relationship update
-        scheduleEvent("updateRelationships", this, 3000, true); // 10 seconds
+        scheduleEvent("updateRelationships", this, 3000, true);
         scheduleEvent("trade", this, 5000, true);
         scheduleEvent("statChange", this, 7000, true);
         scheduleEvent("attack", this, 10000, true);
@@ -34,8 +39,23 @@ class City {
         this.initializeBuilding()
 
         //Particle System for plague
-        this.plagueParticles = new ParticleSystem(this.x, this.y, this.total_height, color(0, 255, 0));
+        this.plagueParticles = new PlagueParticleSystem(this.x, this.y, this.total_height, color(0, 255, 0));
         this.isPlagued = false
+
+        this.techParticles = new TechBoostParticleSystem(this.x, this.y, this.total_height, color(0, 0, 255));
+        this.isTechBoosted = false;
+
+        
+        this.nukeEffect=null;
+
+    }
+
+    triggerNukeEffect() {
+        this.nukeEffect = new NukeEffect(this.x, this.y);
+
+        this.nukeEffect.isActive = true;
+
+        this.nukeEffect.start();
     }
 
     triggerPlagueEffect() {
@@ -53,6 +73,27 @@ class City {
             clearInterval(plagueInterval);
         }, 7000)
 
+        for (let ally of this.allies) {
+            if (!ally.isPlagued) { // Avoid re-triggering if the ally is already plagued
+                ally.triggerPlagueEffect();
+            }
+        }
+    }
+
+    triggerTechBoostEffect() {
+        this.isTechBoosted = true;
+
+        const techInterval = setInterval(() => {
+            if (this.isTechBoosted) {
+                this.techParticles.emit();
+            }
+        }, 100)// emit particels every 100ms
+
+        //stop the plague effect
+        setTimeout(() => {
+            this.isTechBoosted = false
+            clearInterval(techInterval);
+        }, 4000)
     }
 
     render() {
@@ -80,6 +121,13 @@ class City {
 
 
         this.plagueParticles.update();
+        this.techParticles.update();
+
+        if (this.nukeEffect) {
+            if (this.nukeEffect.isActive) {
+                this.nukeEffect.update();
+            }
+        }
 
 
     }
@@ -142,6 +190,9 @@ class City {
 
         if (this.plagueParticles) {
             this.plagueParticles.updateCityHeight(this.total_height);
+        }
+        if (this.techParticles) {
+            this.techParticles.updateCityHeight(this.total_height);
         }
 
     }

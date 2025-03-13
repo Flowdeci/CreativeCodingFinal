@@ -1,5 +1,5 @@
 //event.js - sotres all the events that the user can implement
-
+let activeMeteorStrike = null;
 /**
  * Nuke a city, reducing its population and increasing aggression.
  * @param {City} city - The city to nuke.
@@ -9,6 +9,8 @@ function nukeCity(city) {
         city.population *= 0.5;//Halve population
         city.aggression += 20;//Increase aggresssion 
         city.stability *= 0.5;//Decrease stabilitiy
+
+        city.triggerNukeEffect();
         console.log(`City ${city.id} has been nuked! Population: ${city.population}, Aggression: ${city.aggression}`);
     }
 
@@ -22,7 +24,9 @@ function techBoost(city) {
     if (city) {
         city.technology += 20;
         city.population += 50;
-        console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
+
+        city.triggerTechBoostEffect();
+        //console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
     }
 }
 
@@ -58,6 +62,9 @@ function meteorStrike(cities) {
         city.population *= 0.7; // Reduce population by 30%
         city.stability *= 0.8; // Decrease stability
     }
+
+    activeMeteorStrike = new MeteorStrike(cities);
+
     console.log("A meteor strike has affected all cities!");
 }
 

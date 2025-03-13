@@ -1,16 +1,15 @@
-class ParticleSystem {
+class TechBoostParticleSystem {
     constructor(x, y, cityHeight, color) {
         this.x = x;
         this.y = y;
         this.cityHeight = cityHeight
         this.particles = [];
         this.color = color
-
     }
 
     emit() {
-        for (let i = 0; i < random(10, 30); i++) {
-            this.particles.push(new Particle(this.x, this.y, this.cityHeight, this.color));
+        for (let i = 0; i < random(5, 15); i++) {
+            this.particles.push(new TechBoostParticle(this.x, this.y, this.cityHeight, this.color));
         }
     }
 
@@ -27,14 +26,12 @@ class ParticleSystem {
         }
     }
 
-
     updateCityHeight(newHeight) {
         this.cityHeight = newHeight;
     }
-
 }
 
-class Particle {
+class TechBoostParticle {
     constructor(x, y, cityHeight, color) {
         this.x = x + random(-10, 10);
         this.y = y + random(-10, 10);
@@ -43,13 +40,13 @@ class Particle {
         this.lifespan = random(255, 750);
         this.color = color;
 
-        const zMin = map(cityHeight, 50, 200, 0.5, 1.5); 
-        const zMax = map(cityHeight, 50, 200, 1.5, 3.5); 
+        const zMin = map(cityHeight, 50, 200, 0.5, 1.5);
+        const zMax = map(cityHeight, 50, 200, 1.5, 3.5);
 
         // Initialize velocity with random values
         this.velocity = createVector(
-            random(-3, 3), 
-            random(-3, 3), 
+            random(-3, 3),
+            random(-3, 3),
             random(zMin, zMax) //random z velocity with city height influence
         );
 
@@ -83,8 +80,5 @@ class Particle {
         fill(red(this.color), green(this.color), blue(this.color), this.lifespan);
         sphere(size); // Render as a shrinking sphere
         pop();
-
     }
-
-
 }

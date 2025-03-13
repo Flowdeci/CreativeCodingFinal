@@ -29,6 +29,7 @@ function processEvents() {
 
     scheduler = scheduler.filter(event => {
         if (currentTime >= event.executeAt) {
+            console.log(`executing event: ${event}`)
             handleEvent(event); // Execute the event
             if (event.repeat) {
                 // Reset the timer for the event using its delay

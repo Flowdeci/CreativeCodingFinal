@@ -5,14 +5,13 @@ let earthHeight;
 let earthWidth;
 
 let cities = [];
-let citiesSize = 5;
+let citiesSize = 10;
 let minimumDistance = 150;
 
 let selectedCity = null;
 
 let isFlashing = false;  // Flag to track flashing
 let flashTime = 0;  // Timer to control how long the flash lasts
-
 
 
 function resizeScreen() {
@@ -86,7 +85,6 @@ function setup() {
 
     cities.push(newCity);
   }
-
 }
 
 function isFarEnough(newX, newY) {
@@ -105,6 +103,7 @@ function draw() {
   //Background
   background("lightblue");
 
+
   //Earth Plane
   noStroke();
   fill("darkgreen");
@@ -119,9 +118,17 @@ function draw() {
     pop();
   }
 
+  if (activeMeteorStrike) {
+    //console.log(activeMeteorStrike);
+    activeMeteorStrike.update();
+    activeMeteorStrike.render();
+    if (activeMeteorStrike.isComplete()) {
+      activeMeteorStrike = null;
+    }
+  }
+
   updateCityStatsMenu()
-
-
+  //processEvents();
 }
 
 function drawConnections() {
