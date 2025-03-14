@@ -45,10 +45,81 @@ class City {
         this.techParticles = new TechBoostParticleSystem(this.x, this.y, this.total_height, color(0, 0, 255));
         this.isTechBoosted = false;
 
-        
-        this.nukeEffect=null;
+        this.nukeEffect = null;
 
     }
+
+    render() {
+        //Color based on stability
+        let cityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
+        //Size based on population
+        this.citySize = map(this.population, 100, 1000, 40, 100);
+        // Pulsing effect
+        let pulse = sin(frameCount * 0.1) * 2;
+        let adjustedSize = this.citySize + pulse;
+
+        //Draw City
+        push()
+        fill(cityColor);
+        noStroke();
+        this.renderBuilding();
+        pop()
+
+        if (selectedCity === this) {
+            stroke(255, 200, 0); // Yellow glow
+            strokeWeight(3);
+            noFill();
+            ellipse(this.x, this.y, adjustedSize + 10); // Slightly larger outline
+        }
+
+
+        this.plagueParticles.update();
+        this.techParticles.update();
+
+        if (this.nukeEffect) {
+            if (this.nukeEffect.isActive) {
+                this.nukeEffect.update();
+            }
+        }
+
+
+    }
+
+    update(cities) {
+        // Constrain city stats
+        this.technology = constrain(this.technology, 0, 100);
+        this.aggression = constrain(this.aggression, 0, 100);
+        this.defense = constrain(this.defense, 0, 100);
+        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+        this.diplomacy = constrain(this.diplomacy, 0, 100);
+    
+        // Update stability
+        this.stability = this.calculateStability();
+    
+        // Adjust building tiers if technology changes
+        this.adjustTiers();
+    
+        // Adjust building heights if population changes significantly
+        if (abs(this.population - this.previousPopulation) > 10) {
+            this.adjustBuildingHeight(this.population);
+            this.previousPopulation = this.population;``
+        }
+    
+        // Grow or shrink tiers to meet new target heights
+        for (let iter = 0; iter < this.tiers; iter++) {
+            let targetHeight = this.target_heights[iter];
+    
+            // Only grow the current tier if the previous one has reached its target
+            if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
+                if (this.dimensions[iter].z < targetHeight) {
+                    this.dimensions[iter].z += 1; 
+                } else if (this.dimensions[iter].z > targetHeight) {
+                    this.dimensions[iter].z -= 1; 
+                }
+            }
+        }
+    }
+
 
     triggerNukeEffect() {
         this.nukeEffect = new NukeEffect(this.x, this.y);
@@ -94,77 +165,6 @@ class City {
             this.isTechBoosted = false
             clearInterval(techInterval);
         }, 4000)
-    }
-
-    render() {
-        //Color based on stability
-        let cityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
-        //Size based on population
-        this.citySize = map(this.population, 100, 1000, 40, 100);
-        // Pulsing effect
-        let pulse = sin(frameCount * 0.1) * 2;
-        let adjustedSize = this.citySize + pulse;
-
-        //Draw City
-        push()
-        fill(cityColor);
-        noStroke();
-        this.renderBuilding();
-        pop()
-
-        if (selectedCity === this) {
-            stroke(255, 200, 0); // Yellow glow
-            strokeWeight(3);
-            noFill();
-            ellipse(this.x, this.y, adjustedSize + 10); // Slightly larger outline
-        }
-
-
-        this.plagueParticles.update();
-        this.techParticles.update();
-
-        if (this.nukeEffect) {
-            if (this.nukeEffect.isActive) {
-                this.nukeEffect.update();
-            }
-        }
-
-
-    }
-
-    update(cities) {
-        // Constrain values
-        this.technology = constrain(this.technology, 0, 100);
-        this.aggression = constrain(this.aggression, 0, 100);
-        this.defense = constrain(this.defense, 0, 100);
-        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
-        this.diplomacy = constrain(this.diplomacy, 0, 100);
-
-        // Update stability
-        this.stability = this.calculateStability();
-
-        // Check if population has changed significantly (e.g., by more than 10)
-        if (abs(this.population - this.previousPopulation) > 10) {
-            // Reinitialize buildings based on new population
-            this.initializeBuilding();
-            this.previousPopulation = this.population; // Track population for next update
-        }
-
-        // Grow or shrink buildings based on population
-        for (let iter = 0; iter < this.tiers; iter++) {
-            let targetHeight = this.target_heights[iter];
-
-            // Only grow the current tier if the previous tier has reached its target height
-            if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
-                if (this.dimensions[iter].z < targetHeight) {
-                    this.dimensions[iter].z += 1; // Grow the building
-                } else if (this.dimensions[iter].z > targetHeight) {
-                    this.dimensions[iter].z -= 1; // Shrink the building
-                }
-            }
-        }
-
-
     }
 
 
@@ -218,6 +218,80 @@ class City {
                 box(this.dimensions[iter].x, this.dimensions[iter].y, this.dimensions[iter].z); // Draw the building
             }
             pop();
+        }
+    }
+
+    adjustBuildingHeight(newPopulation) {
+        let floor_height = map(newPopulation, 100, 1000, 30, 100); // Recalculate base height
+        let size_val = 1; // Reset size value for recalculating dimensions
+        this.total_height = 0; // Reset total height tracker
+
+        for (let ctr = 0; ctr < this.tiers; ctr++) {
+            // Update target heights for each tier
+            this.target_heights[ctr] = floor_height;
+
+            // Update dimensions for each tier
+            this.dimensions[ctr].x = this.width * size_val;
+            this.dimensions[ctr].y = this.width * size_val;
+
+            // Update total height
+            this.total_height += floor_height;
+
+            // Reduce height and size for the next tier
+            floor_height = (1 - (random() * (1 / 6) + 1 / 6)) * floor_height;
+            size_val = (1 - (random() * (1 / 6) + 1 / 6)) * size_val;
+        }
+
+        // Update particle effects height to match the new total height
+        if (this.plagueParticles) {
+            this.plagueParticles.updateCityHeight(this.total_height);
+        }
+        if (this.techParticles) {
+            this.techParticles.updateCityHeight(this.total_height);
+        }
+    }
+
+    adjustTiers() {
+        // Calculate the new number of tiers based on technology
+        const newTiers = floor(map(this.technology, 0, 100, 1, 5));
+    
+        // If the number of tiers hasn't changed, do nothing
+        if (newTiers === this.tiers) return;
+    
+        // If the number of tiers has increased, add new tiers
+        if (newTiers > this.tiers) {
+            let floor_height = this.target_heights[this.tiers - 1]; // Start with the height of the last tier
+            let size_val = this.dimensions[this.tiers - 1].x / this.width; // Start with the size of the last tier
+    
+            for (let i = this.tiers; i < newTiers; i++) {
+                // Add new tier dimensions and target heights
+                this.dimensions.push(createVector(this.width * size_val, this.width * size_val, 0)); // New tier starts at height 0
+                this.target_heights.push(floor_height);
+    
+                // Update height and size for the next tier
+                floor_height = (1 - (random() * (1 / 6) + 1 / 6)) * floor_height;
+                size_val = (1 - (random() * (1 / 6) + 1 / 6)) * size_val;
+            }
+        }
+    
+        // If the number of tiers has decreased, remove excess tiers
+        if (newTiers < this.tiers) {
+            this.dimensions = this.dimensions.slice(0, newTiers); // Keep only the first newTiers dimensions
+            this.target_heights = this.target_heights.slice(0, newTiers); // Keep only the first newTiers target heights
+        }
+    
+        // Update the total number of tiers
+        this.tiers = newTiers;
+    
+        // Recalculate total height
+        this.total_height = this.target_heights.reduce((sum, height) => sum + height, 0);
+    
+        // Update particle effects height
+        if (this.plagueParticles) {
+            this.plagueParticles.updateCityHeight(this.total_height);
+        }
+        if (this.techParticles) {
+            this.techParticles.updateCityHeight(this.total_height);
         }
     }
 

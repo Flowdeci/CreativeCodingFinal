@@ -13,6 +13,7 @@ let selectedCity = null;
 let isFlashing = false;  // Flag to track flashing
 let flashTime = 0;  // Timer to control how long the flash lasts
 
+let clouds = [];
 
 function resizeScreen() {
   // Update the center of the canvas
@@ -85,6 +86,8 @@ function setup() {
 
     cities.push(newCity);
   }
+
+  setupClouds();
 }
 
 function isFarEnough(newX, newY) {
@@ -98,16 +101,19 @@ function isFarEnough(newX, newY) {
 }
 
 function draw() {
-  // Enable orbiting with the mouse.
-  orbitControl();
   //Background
   background("lightblue");
 
 
-  //Earth Plane
-  noStroke();
-  fill("darkgreen");
-  plane(earthWidth, earthHeight);
+  // Enable orbiting with the mouse.
+  orbitControl();
+
+  drawSun();
+
+  drawClouds();
+
+  drawGround();
+
 
   //Draw all the cities
   for (let i = 0; i < cities.length; i++) {
@@ -127,37 +133,95 @@ function draw() {
     }
   }
 
+
+
   updateCityStatsMenu()
   //processEvents();
 }
 
-function drawConnections() {
-  for (let i = 0; i < cities.length; i++) {
-    let city = cities[i];
-    if (city.allies && city.allies.length > 0) {
-      for (let j = 0; j < city.allies.length; j++) {
-        let ally = city.allies[j];
-        if (ally && ally instanceof City) { // Ensure ally is valid
-          stroke(0, 0, 255);
-          strokeWeight(2);
-          line(city.x, city.y, ally.x, ally.y);
-        } else {
-          console.warn("Invalid ally found in:", city);
-        }
-      }
+
+function drawGround() {
+  let gridSize = 20; // Size of each grid square
+
+  for (let x = -earthWidth / 2; x < earthWidth / 2; x += gridSize) {
+    for (let y = -earthHeight / 2; y < earthHeight / 2; y += gridSize) {
+      // Generate a color based on Perlin noise
+      let noiseValue = noise(x * 0.01, y * 0.01); // Adjust scale for variation
+      let groundColor = lerpColor(
+        color(60, 180, 75), // Grass green
+        color(40, 120, 50), // Darker green
+        noiseValue
+      );
+
+      push();
+      noStroke();
+      fill(groundColor);
+      translate(x + gridSize / 2, y + gridSize / 2, -5); // Center each grid square
+      plane(gridSize, gridSize); // Draw a flat plane for each grid square
+      pop();
     }
-    if (city.hostiles && city.hostiles.length > 0) {
-      for (let j = 0; j < city.hostiles.length; j++) {
-        let hostile = city.hostiles[j];
-        if (hostile && hostile instanceof City) { // Ensure ally is valid
-          stroke(255, 0, 0); // Red for hostiles
-          strokeWeight(2);
-          line(city.x, city.y, hostile.x, hostile.y);
-        } else {
-          console.warn("Invalid ally found in:", city);
-        }
-      }
+  }
+}
+
+function drawSun() {
+  push();
+  noStroke();
+  fill(255, 223, 0);
+  translate(300, -200, 700);
+  sphere(70);
+  pop();
+}
+
+function drawClouds() {
+  for (let cloud of clouds) {
+    push();
+    noStroke();
+    fill(255, 255, 255, 150);
+    translate(cloud.x, cloud.y, cloud.z);
+
+    //Draw all the elisposdes for the clouds
+    for (let ellipsoidData of cloud.ellipsoids) {
+      push();
+      translate(ellipsoidData.offsetX, ellipsoidData.offsetY, ellipsoidData.offsetZ);
+      ellipsoid(ellipsoidData.sizeX, ellipsoidData.sizeY, ellipsoidData.sizeZ);
+      pop();
     }
+
+    pop();
+
+    // drift the cloud 
+    cloud.x += cloud.speed;
+    if (cloud.x > width / 2) {
+      cloud.x = -width / 2;
+    }
+  }
+}
+
+function setupClouds() {
+  clouds = [];
+  for (let i = 0; i < 10; i++) {
+    let ellipsoids = [];
+    let cloudSize = random(40, 80);
+
+    // create multiple elispposdes to form a layered cloud
+    for (let j = 0; j < 5; j++) {
+      ellipsoids.push({
+        offsetX: random(-cloudSize * 0.5, cloudSize * 0.5),
+        offsetY: random(-cloudSize * 0.3, cloudSize * 0.3),
+        offsetZ: random(-cloudSize * 0.2, cloudSize * 0.2),
+        sizeX: cloudSize,
+        sizeY: cloudSize * 0.6,
+        sizeZ: cloudSize * 0.4
+      });
+    }
+
+    clouds.push({
+      x: random(-width / 2, width / 2),
+      y: random(-height / 2, height / 2),
+      z: random(400, 500),
+      speed: random(0.1, 0.3),
+      ellipsoids
+    });
   }
 }
 
