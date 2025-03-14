@@ -38,6 +38,8 @@ class City {
         this.previousPopulation = population
         this.initializeBuilding()
 
+        this.supportingBuildings = this.initializeSupportingBuildings();
+
         //Particle System for plague
         this.plagueParticles = new PlagueParticleSystem(this.x, this.y, this.total_height, color(0, 255, 0));
         this.isPlagued = false
@@ -58,12 +60,18 @@ class City {
         let pulse = sin(frameCount * 0.1) * 2;
         let adjustedSize = this.citySize + pulse;
 
+
+        this.renderSupportingBuildings();
+
         //Draw City
         push()
         fill(cityColor);
-        noStroke();
+        //noStroke();
         this.renderBuilding();
         pop()
+
+        //Draw tech glow 
+        this.renderTechEffects();
 
         if (selectedCity === this) {
             stroke(255, 200, 0); // Yellow glow
@@ -78,7 +86,7 @@ class City {
 
         if (this.nukeEffect) {
             if (this.nukeEffect.isActive) {
-                this.nukeEffect.update();
+                this.nukeEffect.update(this);
             }
         }
 
@@ -92,29 +100,53 @@ class City {
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
-    
+
         // Update stability
         this.stability = this.calculateStability();
-    
+
         // Adjust building tiers if technology changes
         this.adjustTiers();
-    
+
         // Adjust building heights if population changes significantly
         if (abs(this.population - this.previousPopulation) > 10) {
             this.adjustBuildingHeight(this.population);
-            this.previousPopulation = this.population;``
+            this.previousPopulation = this.population; ``
         }
-    
+
+        if (this.stability < 0.2 && random() < 0.001) {
+            this.destroyBuilding(); // 5% chance to destroy a building each frame
+        }
+
+        // Update supporting buildings
+        for (let building of this.supportingBuildings) {
+            if (!building.destroyed) {
+                building.targetHeight = building.heightProportion * this.total_height;
+
+                // Adjust height based on main building's height
+                if (building.height > building.targetHeight) {
+                    building.height -= 0.5;
+                } else if (building.height < building.targetHeight) {
+                    building.height += 0.5;
+                }
+            } else {
+                // Destroyed buildings can regrow
+                if (random() < 0.001 && building.height == 0) {
+                    building.destroyed = false;
+                    building.height = 0;
+                }
+            }
+        }
+
         // Grow or shrink tiers to meet new target heights
         for (let iter = 0; iter < this.tiers; iter++) {
             let targetHeight = this.target_heights[iter];
-    
+
             // Only grow the current tier if the previous one has reached its target
             if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
                 if (this.dimensions[iter].z < targetHeight) {
-                    this.dimensions[iter].z += 1; 
+                    this.dimensions[iter].z += 1;
                 } else if (this.dimensions[iter].z > targetHeight) {
-                    this.dimensions[iter].z -= 1; 
+                    this.dimensions[iter].z -= 1;
                 }
             }
         }
@@ -127,6 +159,7 @@ class City {
         this.nukeEffect.isActive = true;
 
         this.nukeEffect.start();
+
     }
 
     triggerPlagueEffect() {
@@ -221,6 +254,139 @@ class City {
         }
     }
 
+    initializeSupportingBuildings() {
+        let buildings = [];
+        let numBuildings = floor(map(this.population, 100, 1000, 2, 7));
+        let radius = this.width;
+
+        for (let i = 0; i < numBuildings; i++) {
+            let angle = (TWO_PI / numBuildings) * i;
+            let distance = radius;
+            let x = this.x + cos(angle) * distance;
+            let y = this.y + sin(angle) * distance;
+
+            // Initialize building with multiple tiers
+            let heightProportion = random(0.3, 0.7);
+            let maxHeight = this.total_height * heightProportion;
+
+            // Add building
+            buildings.push({
+                x,
+                y,
+                width: random(10, 20),
+                depth: random(10, 20),
+                height: 0,
+                targetHeight: maxHeight,
+                heightProportion: heightProportion,
+                destroyed: false,
+            });
+        }
+
+        return buildings;
+    }
+
+    renderSupportingBuildings() {
+        for (let building of this.supportingBuildings) {
+            if (!building.destroyed) {
+                let height = building.height;
+                push();
+                translate(building.x, building.y, height / 2);
+                fill("grey");
+                box(building.width, building.depth, height);
+                pop();
+            }
+        }
+    }
+
+    destroyBuilding() {
+        // Randomly destroy one of the buildings
+        let intactBuildings = this.supportingBuildings.filter(b => !b.destroyed);
+        if (intactBuildings.length > 0) {
+            let building = random(intactBuildings);
+            building.destroyed = true;
+        }
+    }
+
+    renderTechEffects() {
+        // **Tech Shield with Glow**
+        if (this.technology > 50) {
+            push();
+            noFill();
+            let shieldPulse = sin(frameCount * 0.1) * 10;
+            for (let i = 0; i < 3; i++) { // Glowing shield layers
+                stroke(0, 200, 255, 80 - i * 20); // Gradual opacity fade
+                ellipse(this.x, this.y, this.citySize + 50 + shieldPulse + i * 10); // Pulsating size
+            }
+
+            // **Rotating Rings**
+            if (this.technology > 60) {
+                push();
+                translate(this.x, this.y);
+                rotate(frameCount * 0.02);
+                stroke(0, 255, 255, 150);
+                ellipse(0, 0, this.citySize + 50, this.citySize + 50);
+                pop();
+
+                // **Hologram-Like Floating Element**
+                if (this.technology > 70) {
+                    push();
+                    translate(this.x, this.y, this.total_height + 20);
+                    // Rotate the  cube
+                    rotateX(frameCount * 0.02);
+                    rotateY(frameCount * 0.02);
+                    // Dynamic  size
+                    let cubeScale = sin(frameCount * 0.05) * 5 + 20;
+                    noFill();
+                    stroke(0, 255, 255, 150);
+                    box(cubeScale);
+
+                    if (this.technology > 80) {
+                        // Add smaller rotating cube inside
+                        push();
+                        rotateX(-frameCount * 0.03);
+                        rotateY(frameCount * 0.03);
+                        stroke(0, 255, 255, 100);
+                        box(10);
+                        pop();
+
+                        if (this.technology > 90) {
+                            // **Orbiting Particles**
+                            for (let i = 0; i < 5; i++) {
+                                let angle = frameCount * 0.02 + i * (TWO_PI / 5);
+                                let orbitRadius = 30;
+                                let x = cos(angle) * orbitRadius;
+                                let y = sin(angle) * orbitRadius;
+                                push();
+                                noStroke();
+                                fill(0, 255, 255, 200);
+                                ellipse(x, y, 5);
+                                pop();
+                            }
+
+                            // **Flowing Particles**
+                            for (let i = 0; i < 5; i++) {
+                                let offset = frameCount * 0.5 + i * 20;
+                                let flowRadius = 30 + offset % 100;
+                                let x = cos(offset * 0.1) * flowRadius;
+                                let y = sin(offset * 0.1) * flowRadius;
+
+                                push();
+                                noStroke();
+                                fill(0, 255, 255, 150);
+                                ellipse(x, y, 3);
+                                pop();
+                            }
+                        }
+
+
+                    }
+                }
+
+                pop();
+            }
+        }
+    }
+
     adjustBuildingHeight(newPopulation) {
         let floor_height = map(newPopulation, 100, 1000, 30, 100); // Recalculate base height
         let size_val = 1; // Reset size value for recalculating dimensions
@@ -254,38 +420,38 @@ class City {
     adjustTiers() {
         // Calculate the new number of tiers based on technology
         const newTiers = floor(map(this.technology, 0, 100, 1, 5));
-    
+
         // If the number of tiers hasn't changed, do nothing
         if (newTiers === this.tiers) return;
-    
+
         // If the number of tiers has increased, add new tiers
         if (newTiers > this.tiers) {
             let floor_height = this.target_heights[this.tiers - 1]; // Start with the height of the last tier
             let size_val = this.dimensions[this.tiers - 1].x / this.width; // Start with the size of the last tier
-    
+
             for (let i = this.tiers; i < newTiers; i++) {
                 // Add new tier dimensions and target heights
                 this.dimensions.push(createVector(this.width * size_val, this.width * size_val, 0)); // New tier starts at height 0
                 this.target_heights.push(floor_height);
-    
+
                 // Update height and size for the next tier
                 floor_height = (1 - (random() * (1 / 6) + 1 / 6)) * floor_height;
                 size_val = (1 - (random() * (1 / 6) + 1 / 6)) * size_val;
             }
         }
-    
+
         // If the number of tiers has decreased, remove excess tiers
         if (newTiers < this.tiers) {
             this.dimensions = this.dimensions.slice(0, newTiers); // Keep only the first newTiers dimensions
             this.target_heights = this.target_heights.slice(0, newTiers); // Keep only the first newTiers target heights
         }
-    
+
         // Update the total number of tiers
         this.tiers = newTiers;
-    
+
         // Recalculate total height
         this.total_height = this.target_heights.reduce((sum, height) => sum + height, 0);
-    
+
         // Update particle effects height
         if (this.plagueParticles) {
             this.plagueParticles.updateCityHeight(this.total_height);

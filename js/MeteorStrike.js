@@ -19,7 +19,7 @@ class MeteorStrike {
 
 
     /** Update the meteors positions and explosions */
-    update() {
+    update(cities) {
         for (let meteor of this.meteors) {
             if (!meteor.explosionTriggered) {
                 //Move the metor to target
@@ -30,6 +30,15 @@ class MeteorStrike {
                     meteor.z = 0;
                     meteor.explosionTriggered = true;
                     console.log("metor hit ground")
+
+                    for (let city of cities) {
+                        let distance = dist(city.x, city.y, meteor.x, meteor.y);
+                        if (distance < 100) { 
+                            city.destroyBuilding();
+                            console.log(`Meteor destroyed a building in City ${city.id}`);
+                        }
+                    }
+
 
                     // Create explosion particles
                     for (let i = 0; i < 150; i++) {
@@ -81,7 +90,7 @@ class MeteorStrike {
                 translate(meteor.x, meteor.y, meteor.z);
                 fill(255, 100, 0);
                 noStroke();
-                sphere(10); 
+                sphere(10);
                 pop();
             } else {
                 // Render explosion particles
@@ -89,8 +98,8 @@ class MeteorStrike {
                     push();
                     translate(particle.x, particle.y, particle.z);
                     noStroke();
-                    fill(255, 150, 0, map(particle.lifespan, 0, 200, 0, 255)); 
-                    sphere(map(particle.lifespan, 0, 200, 0, 5)); 
+                    fill(255, 150, 0, map(particle.lifespan, 0, 200, 0, 255));
+                    sphere(map(particle.lifespan, 0, 200, 0, 5));
                     pop();
                 }
 
@@ -98,7 +107,7 @@ class MeteorStrike {
                 if (meteor.shockwaveRadius < 300) {
                     push();
                     noFill();
-                    stroke(255, 200, 0, map(meteor.shockwaveRadius, 0, 300, 255, 0)); 
+                    stroke(255, 200, 0, map(meteor.shockwaveRadius, 0, 300, 255, 0));
                     strokeWeight(2);
                     ellipse(meteor.x, meteor.y, meteor.shockwaveRadius * 2);
                     pop();

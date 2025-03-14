@@ -102,7 +102,7 @@ function isFarEnough(newX, newY) {
 
 function draw() {
   //Background
-  background("lightblue");
+  background("black");
 
 
   // Enable orbiting with the mouse.
@@ -126,14 +126,12 @@ function draw() {
 
   if (activeMeteorStrike) {
     //console.log(activeMeteorStrike);
-    activeMeteorStrike.update();
+    activeMeteorStrike.update(cities);
     activeMeteorStrike.render();
     if (activeMeteorStrike.isComplete()) {
       activeMeteorStrike = null;
     }
   }
-
-
 
   updateCityStatsMenu()
   //processEvents();
@@ -156,7 +154,7 @@ function drawGround() {
       push();
       noStroke();
       fill(groundColor);
-      translate(x + gridSize / 2, y + gridSize / 2, -5); // Center each grid square
+      translate(x + gridSize / 2, y + gridSize / 2, 0); // Center each grid square
       plane(gridSize, gridSize); // Draw a flat plane for each grid square
       pop();
     }

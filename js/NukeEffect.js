@@ -24,13 +24,18 @@ class NukeEffect {
     }
 
     /** Update the eplostion particels and shockwave*/
-    update() {
+    update(city) {
         this.render();
         if (!this.hasExploded) {
             this.z -= 10;
             if (this.z <= 0) {
                 this.z = 0;
                 this.hasExploded = true;
+
+                if (city) {
+                    city.destroyBuilding();
+                    console.log(`Nuke hit City ${city.id}, destroying a building.`);
+                }
             }
         } else {
             //Particles
@@ -55,7 +60,7 @@ class NukeEffect {
             if (this.explosionParticles.length === 0 && this.shockwaveRadius > 500) {
                 this.isActive = false;
             }
-        } 
+        }
     }
 
     /** Draw the nuke effect on screen */
