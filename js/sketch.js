@@ -176,7 +176,7 @@ function drawClouds() {
   for (let cloud of clouds) {
     push();
     noStroke();
-    fill(255, 255, 255, 150);
+    fill(255, 255, 255, 200);
     translate(cloud.x, cloud.y, cloud.z);
 
     //Draw all the elisposdes for the clouds
@@ -204,7 +204,7 @@ function setupClouds() {
     let cloudSize = random(40, 80);
 
     // create multiple elispposdes to form a layered cloud
-    for (let j = 0; j < 5; j++) {
+    for (let j = 0; j < random(2, 7); j++) {
       ellipsoids.push({
         offsetX: random(-cloudSize * 0.5, cloudSize * 0.5),
         offsetY: random(-cloudSize * 0.3, cloudSize * 0.3),
