@@ -1,12 +1,12 @@
 let canvasContainer;
 let centerHorz, centerVert;
 
-let earthHeight;
-let earthWidth;
+let earthHeight=1000;
+let earthWidth=1000;
 
 let cities = [];
 let citiesSize = 10;
-let minimumDistance = 150;
+let minimumDistance = 200;
 
 let selectedCity = null;
 
@@ -24,8 +24,9 @@ function resizeScreen() {
   resizeCanvas(canvasContainer.width(), canvasContainer.height());
 
   // Set the new Earth dimensions
-  earthWidth = canvasContainer.width() * 0.8;
-  earthHeight = canvasContainer.height() * 0.8;
+  //earthWidth = canvasContainer.width() * 0.8;
+  //earthHeight = canvasContainer.height() * 0.8;
+  
 
   if (cities.length === 0) {
     return;
@@ -55,8 +56,8 @@ function setup() {
   setupUI()
 
   // Set the initial size of the Earth
-  earthWidth = canvasContainer.width() * 0.8;
-  earthHeight = canvasContainer.height() * 0.8;
+  //earthWidth = canvasContainer.width() * 0.8;
+  //earthHeight = canvasContainer.height() * 0.8;
 
   // Generate Initial Cities
   for (let i = 0; i < citiesSize; i++) {
@@ -65,8 +66,8 @@ function setup() {
 
     // Retry until a valid position is found
     while (!validPosition) {
-      relativeX = random(0.1, 0.9); // 10% to 90% of Earth width
-      relativeY = random(0.1, 0.9); // 10% to 90% of Earth height
+      relativeX = random(0.2, 0.8); // 10% to 90% of Earth width
+      relativeY = random(0.2, 0.8); // 10% to 90% of Earth height
 
       // Calculate absolute positions based on relative positions
       x = relativeX * random(-(earthWidth / 2), earthWidth / 2);
@@ -239,7 +240,13 @@ function keyPressed() {
   } else if (key === 'M' || key === 'm') {
     console.log(`Meteor strike!`);
     meteorStrike(cities);
-  } else if (key === 'Q' || key === 'q') {
+  }
+  else if (key === 'Y' || key === 'y') {
+    console.log('lowering military strength')
+    targetCity.militaryStrength += 30;
+
+  }
+  else if (key === 'Q' || key === 'q') {
     // Navigate to previous city
     if (selectedCity == null) {
       selectedCity = cities[cities.length - 1];

@@ -38,16 +38,15 @@ class City {
         this.previousPopulation = population
         this.initializeBuilding()
 
-        this.supportingBuildings = this.initializeSupportingBuildings();
-
         //Particle System for plague
         this.plagueParticles = new PlagueParticleSystem(this.x, this.y, this.total_height, color(0, 255, 0));
         this.isPlagued = false
 
-        this.techParticles = new TechBoostParticleSystem(this.x, this.y, this.total_height, color(0, 0, 255));
-        this.isTechBoosted = false;
-
         this.nukeEffect = null;
+
+        this.techBuilding = new TechBuilding(this);
+        this.militaryBuilding = new MilitaryBuilding(this);
+        this.supportBuildings = new SupportBuildings(this);
 
     }
 
@@ -60,29 +59,26 @@ class City {
         let pulse = sin(frameCount * 0.1) * 2;
         let adjustedSize = this.citySize + pulse;
 
-
-        this.renderSupportingBuildings();
-
         //Draw City
         push()
         fill(cityColor);
-        //noStroke();
         this.renderBuilding();
         pop()
 
-        //Draw tech glow 
-        this.renderTechEffects();
-
+        //Selected city effect
         if (selectedCity === this) {
+            push();
             stroke(255, 200, 0); // Yellow glow
             strokeWeight(3);
             noFill();
-            ellipse(this.x, this.y, adjustedSize + 10); // Slightly larger outline
+            ellipse(this.x, this.y, adjustedSize + 10);
+            pop();
         }
 
-
+        this.techBuilding.renderTechEffects();
+        this.militaryBuilding.renderMilitaryStrengthEffect();
+        this.supportBuildings.renderSupportingBuildings();
         this.plagueParticles.update();
-        this.techParticles.update();
 
         if (this.nukeEffect) {
             if (this.nukeEffect.isActive) {
@@ -113,29 +109,9 @@ class City {
             this.previousPopulation = this.population; ``
         }
 
-        if (this.stability < 0.2 && random() < 0.001) {
-            this.destroyBuilding(); // 5% chance to destroy a building each frame
-        }
 
-        // Update supporting buildings
-        for (let building of this.supportingBuildings) {
-            if (!building.destroyed) {
-                building.targetHeight = building.heightProportion * this.total_height;
 
-                // Adjust height based on main building's height
-                if (building.height > building.targetHeight) {
-                    building.height -= 0.5;
-                } else if (building.height < building.targetHeight) {
-                    building.height += 0.5;
-                }
-            } else {
-                // Destroyed buildings can regrow
-                if (random() < 0.001 && building.height == 0) {
-                    building.destroyed = false;
-                    building.height = 0;
-                }
-            }
-        }
+
 
         // Grow or shrink tiers to meet new target heights
         for (let iter = 0; iter < this.tiers; iter++) {
@@ -150,6 +126,11 @@ class City {
                 }
             }
         }
+
+        this.techBuilding.updateTechParticles();
+        this.militaryBuilding.updateMilitaryTowers();
+        this.supportBuildings.updateSupportingBuildings();
+
     }
 
 
@@ -184,21 +165,7 @@ class City {
         }
     }
 
-    triggerTechBoostEffect() {
-        this.isTechBoosted = true;
 
-        const techInterval = setInterval(() => {
-            if (this.isTechBoosted) {
-                this.techParticles.emit();
-            }
-        }, 100)// emit particels every 100ms
-
-        //stop the plague effect
-        setTimeout(() => {
-            this.isTechBoosted = false
-            clearInterval(techInterval);
-        }, 4000)
-    }
 
 
     initializeBuilding() {
@@ -254,136 +221,12 @@ class City {
         }
     }
 
-    initializeSupportingBuildings() {
-        let buildings = [];
-        let numBuildings = floor(map(this.population, 100, 1000, 2, 7));
-        let radius = this.width;
-
-        for (let i = 0; i < numBuildings; i++) {
-            let angle = (TWO_PI / numBuildings) * i;
-            let distance = radius;
-            let x = this.x + cos(angle) * distance;
-            let y = this.y + sin(angle) * distance;
-
-            // Initialize building with multiple tiers
-            let heightProportion = random(0.3, 0.7);
-            let maxHeight = this.total_height * heightProportion;
-
-            // Add building
-            buildings.push({
-                x,
-                y,
-                width: random(10, 20),
-                depth: random(10, 20),
-                height: 0,
-                targetHeight: maxHeight,
-                heightProportion: heightProportion,
-                destroyed: false,
-            });
-        }
-
-        return buildings;
-    }
-
-    renderSupportingBuildings() {
-        for (let building of this.supportingBuildings) {
-            if (!building.destroyed) {
-                let height = building.height;
-                push();
-                translate(building.x, building.y, height / 2);
-                fill("grey");
-                box(building.width, building.depth, height);
-                pop();
-            }
-        }
-    }
-
     destroyBuilding() {
         // Randomly destroy one of the buildings
-        let intactBuildings = this.supportingBuildings.filter(b => !b.destroyed);
+        let intactBuildings = this.supportBuildings.supportingBuildings.filter(b => !b.destroyed);
         if (intactBuildings.length > 0) {
             let building = random(intactBuildings);
             building.destroyed = true;
-        }
-    }
-
-    renderTechEffects() {
-        // **Tech Shield with Glow**
-        if (this.technology > 50) {
-            push();
-            noFill();
-            let shieldPulse = sin(frameCount * 0.1) * 10;
-            for (let i = 0; i < 3; i++) { // Glowing shield layers
-                stroke(0, 200, 255, 80 - i * 20); // Gradual opacity fade
-                ellipse(this.x, this.y, this.citySize + 50 + shieldPulse + i * 10); // Pulsating size
-            }
-
-            // **Rotating Rings**
-            if (this.technology > 60) {
-                push();
-                translate(this.x, this.y);
-                rotate(frameCount * 0.02);
-                stroke(0, 255, 255, 150);
-                ellipse(0, 0, this.citySize + 50, this.citySize + 50);
-                pop();
-
-                // **Hologram-Like Floating Element**
-                if (this.technology > 70) {
-                    push();
-                    translate(this.x, this.y, this.total_height + 20);
-                    // Rotate the  cube
-                    rotateX(frameCount * 0.02);
-                    rotateY(frameCount * 0.02);
-                    // Dynamic  size
-                    let cubeScale = sin(frameCount * 0.05) * 5 + 20;
-                    noFill();
-                    stroke(0, 255, 255, 150);
-                    box(cubeScale);
-
-                    if (this.technology > 80) {
-                        // Add smaller rotating cube inside
-                        push();
-                        rotateX(-frameCount * 0.03);
-                        rotateY(frameCount * 0.03);
-                        stroke(0, 255, 255, 100);
-                        box(10);
-                        pop();
-
-                        if (this.technology > 90) {
-                            // **Orbiting Particles**
-                            for (let i = 0; i < 5; i++) {
-                                let angle = frameCount * 0.02 + i * (TWO_PI / 5);
-                                let orbitRadius = 30;
-                                let x = cos(angle) * orbitRadius;
-                                let y = sin(angle) * orbitRadius;
-                                push();
-                                noStroke();
-                                fill(0, 255, 255, 200);
-                                ellipse(x, y, 5);
-                                pop();
-                            }
-
-                            // **Flowing Particles**
-                            for (let i = 0; i < 5; i++) {
-                                let offset = frameCount * 0.5 + i * 20;
-                                let flowRadius = 30 + offset % 100;
-                                let x = cos(offset * 0.1) * flowRadius;
-                                let y = sin(offset * 0.1) * flowRadius;
-
-                                push();
-                                noStroke();
-                                fill(0, 255, 255, 150);
-                                ellipse(x, y, 3);
-                                pop();
-                            }
-                        }
-
-
-                    }
-                }
-
-                pop();
-            }
         }
     }
 

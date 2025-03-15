@@ -25,7 +25,7 @@ function techBoost(city) {
         city.technology += 20;
         city.population += 50;
 
-        city.triggerTechBoostEffect();
+        city.techBuilding.triggerTechBoostEffect();
         //console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
     }
 }
