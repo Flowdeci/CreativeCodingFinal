@@ -135,7 +135,7 @@ function draw() {
   }
 
   updateCityStatsMenu()
-  //processEvents();
+  processEvents();
 }
 
 
