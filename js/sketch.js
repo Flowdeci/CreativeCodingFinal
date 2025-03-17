@@ -6,7 +6,7 @@ let earthWidth=1000;
 
 let cities = [];
 let citiesSize = 10;
-let minimumDistance = 200;
+let minimumDistance = 250;
 
 let selectedCity = null;
 
