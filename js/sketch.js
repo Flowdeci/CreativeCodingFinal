@@ -1,8 +1,8 @@
 let canvasContainer;
 let centerHorz, centerVert;
 
-let earthHeight=1000;
-let earthWidth=1000;
+let earthHeight = 1200;
+let earthWidth = 1200;
 
 let cities = [];
 let citiesSize = 10;
@@ -26,7 +26,7 @@ function resizeScreen() {
   // Set the new Earth dimensions
   //earthWidth = canvasContainer.width() * 0.8;
   //earthHeight = canvasContainer.height() * 0.8;
-  
+
 
   if (cities.length === 0) {
     return;
@@ -103,7 +103,7 @@ function isFarEnough(newX, newY) {
 
 function draw() {
   //Background
-  background("black");
+  background("lightblue");
 
 
   // Enable orbiting with the mouse.
@@ -117,11 +117,13 @@ function draw() {
 
 
   //Draw all the cities
-  for (let i = 0; i < cities.length; i++) {
+  const citiesCopy = [...cities];
+  for (let city of citiesCopy) {
     push();
-    cities[i].update();
-    cities[i].render();
-
+    if (city) {
+      city.render();
+      city.update();
+    }
     pop();
   }
 
@@ -138,25 +140,48 @@ function draw() {
   processEvents();
 }
 
+function spawnNewCity() {
+  let relativeX, relativeY, x, y;
+  let validPosition = false;
+
+  while (!validPosition) {
+    relativeX = random(0.2, 0.8);
+    relativeY = random(0.2, 0.8);
+
+    x = map(relativeX, 0.1, 0.9, -(earthWidth / 2), earthWidth / 2);
+    y = map(relativeY, 0.1, 0.9, -(earthHeight / 2), earthHeight / 2);
+
+    if (isFarEnough(x, y)) {
+      validPosition = true;
+    }
+  }
+
+  let population = random(100, 1000);
+  let newCity = new City(x, y, population);
+  newCity.relativeX = relativeX;
+  newCity.relativeY = relativeY;
+
+  cities.push(newCity);
+  console.log(`New city spawned with ID ${newCity.id}`);
+}
 
 function drawGround() {
-  let gridSize = 20; // Size of each grid square
+  let gridSize = 100; // Size of each grid square, have higher for better performance
 
   for (let x = -earthWidth / 2; x < earthWidth / 2; x += gridSize) {
     for (let y = -earthHeight / 2; y < earthHeight / 2; y += gridSize) {
-      // Generate a color based on Perlin noise
-      let noiseValue = noise(x * 0.01, y * 0.01); // Adjust scale for variation
+      let noiseValue = noise(x * 0.01, y * 0.01);
       let groundColor = lerpColor(
-        color(60, 180, 75), // Grass green
-        color(40, 120, 50), // Darker green
+        color(60, 180, 75),
+        color(40, 120, 50),
         noiseValue
       );
 
       push();
       noStroke();
       fill(groundColor);
-      translate(x + gridSize / 2, y + gridSize / 2, 0); // Center each grid square
-      plane(gridSize, gridSize); // Draw a flat plane for each grid square
+      translate(x + gridSize / 2, y + gridSize / 2, 0);
+      plane(gridSize, gridSize);
       pop();
     }
   }
@@ -225,45 +250,41 @@ function setupClouds() {
 }
 
 function keyPressed() {
-  let targetCity = selectedCity || cities[floor(random(cities.length))];
+  let currentIndex = cities.indexOf(selectedCity);
+
   if (key === 'N' || key === 'n') {
-    console.log(`Nuking: ${targetCity.id}`);
-    nukeCity(targetCity);
+    console.log(`Nuking: ${selectedCity?.id}`);
+    nukeCity(selectedCity);
     isFlashing = true;
     flashTime = millis();
-  } else if (key === 'T' || key === `t`) {
-    console.log(`Tech boosting: ${targetCity.id}`);
-    techBoost(targetCity);
+  } else if (key === 'T' || key === 't') {
+    console.log(`Tech boosting: ${selectedCity?.id}`);
+    techBoost(selectedCity);
   } else if (key === 'P' || key === 'p') {
-    console.log(`Triggering plague for: ${targetCity.id}`);
-    plague(targetCity);
+    console.log(`Triggering plague for: ${selectedCity?.id}`);
+    plague(selectedCity);
   } else if (key === 'M' || key === 'm') {
     console.log(`Meteor strike!`);
     meteorStrike(cities);
+  } else if (key === 'Y' || key === 'y') {
+    console.log('Increasing military strength');
+    selectedCity.militaryStrength += 30;
   }
-  else if (key === 'Y' || key === 'y') {
-    console.log('lowering military strength')
-    targetCity.militaryStrength += 30;
-
-  }
+  // Navigate to the previous city
   else if (key === 'Q' || key === 'q') {
-    // Navigate to previous city
-    if (selectedCity == null) {
+
+    if (currentIndex === -1) {
       selectedCity = cities[cities.length - 1];
-    } else if (selectedCity.id > 0) {
-      selectedCity = cities[selectedCity.id - 1];
     } else {
-      selectedCity = null;
+      selectedCity = cities[(currentIndex - 1 + cities.length) % cities.length]; // Wrap around
     }
     updateCityStatsMenu();
   } else if (key === 'E' || key === 'e') {
-    // Navigate to next city
-    if (selectedCity == null) {
-      selectedCity = cities[0];
-    } else if (selectedCity.id < cities.length - 1) {
-      selectedCity = cities[selectedCity.id + 1];
+    // Navigate to the next city
+    if (currentIndex === -1) {
+      selectedCity = cities[0]; // Start at the first city if none selected
     } else {
-      selectedCity = null;
+      selectedCity = cities[(currentIndex + 1) % cities.length]; // Wrap around
     }
     updateCityStatsMenu();
   }

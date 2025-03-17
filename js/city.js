@@ -5,7 +5,7 @@ class City {
         this.x = x;
         this.y = y;
 
-        this.population = population;
+        this.population = random(200, 1000);
         this.citySize = map(this.population, 100, 1000, 40, 100);
         this.stability = this.calculateStability()
         this.hostiles = []
@@ -13,15 +13,15 @@ class City {
 
         //City Stats
         /** Represents the city's level of advancement*/
-        this.technology = random(0, 100);
+        this.technology = random(20, 70);
         /** Determines how likely the city is to attack others*/
-        this.aggression = random(0, 100);
+        this.aggression = random(20, 70);
         /** Represents the city's ability to fend off attacks*/
-        this.defense = random(0, 100);
+        this.defense = random(20, 70);
         /**Determines the strength of the city's army */
-        this.militaryStrength = random(0, 100);
+        this.militaryStrength = random(20, 70);
         /**Determines how likely the city is to form alliances */
-        this.diplomacy = random(0, 100);
+        this.diplomacy = random(20, 70);
 
         // Schedule initial relationship update
         scheduleEvent("updateRelationships", this, 3000, true);
@@ -49,91 +49,104 @@ class City {
         this.supportBuildings = new SupportBuildings(this);
         this.defenseShield = new DefenseShield(this);
 
-
+        this.pendingDestruction = false; // Whether the city is in the destruction delay phase
+        this.destructionTimer = 0; // Timer for the destruction delay
+        this.isBeingDestroyed = false; // Whether the city is currently being destroyed
+        this.isDestroyed = false;
     }
 
     render() {
-        //Color based on stability
-        let cityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
-        //Size based on population
-        this.citySize = map(this.population, 100, 1000, 40, 100);
-        // Pulsing effect
-        let pulse = sin(frameCount * 0.1) * 2;
-        let adjustedSize = this.citySize + pulse;
+        if (!this.isDestroyed) {
+            if (this.isBeingDestroyed) {
+                this.playDeathAnimation(); // Render the death animation
+            } else {
+                //Color based on stability
+                let cityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
+                //Size based on population
+                this.citySize = map(this.population, 100, 1000, 40, 100);
+                // Pulsing effect
+                let pulse = sin(frameCount * 0.1) * 2;
+                let adjustedSize = this.citySize + pulse;
 
-        //Draw City
-        push()
-        fill(cityColor);
-        this.renderBuilding();
-        pop()
+                //Draw City
+                push()
+                fill(cityColor);
+                this.renderBuilding();
+                pop()
 
-        //Selected city effect
-        if (selectedCity === this) {
-            push();
-            stroke(255, 200, 0); // Yellow glow
-            strokeWeight(3);
-            noFill();
-            ellipse(this.x, this.y, adjustedSize + 10);
-            pop();
-        }
+                //Selected city effect
+                if (selectedCity === this) {
+                    push();
+                    stroke(255, 200, 0); // Yellow glow
+                    strokeWeight(3);
+                    noFill();
+                    ellipse(this.x, this.y, adjustedSize + 10);
+                    pop();
+                }
 
-        this.techBuilding.renderTechEffects();
-        this.militaryBuilding.renderMilitaryStrengthEffect();
-        this.supportBuildings.renderSupportingBuildings();
-        this.defenseShield.render();
+                this.techBuilding.renderTechEffects();
+                this.militaryBuilding.renderMilitaryStrengthEffect();
+                this.supportBuildings.renderSupportingBuildings();
+                this.defenseShield.render();
 
-        // Draw the plague particles
-        if (this.isPlagued) {
-            this.plagueParticles.update();
-        }
+                // Draw the plague particles
+                if (this.isPlagued) {
+                    this.plagueParticles.update();
+                }
 
-        if (this.nukeEffect) {
-            if (this.nukeEffect.isActive) {
-                this.nukeEffect.update(this);
-            }
-        }
-
-
-    }
-
-    update(cities) {
-        // Constrain city stats
-        this.technology = constrain(this.technology, 0, 100);
-        this.aggression = constrain(this.aggression, 0, 100);
-        this.defense = constrain(this.defense, 0, 100);
-        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
-        this.diplomacy = constrain(this.diplomacy, 0, 100);
-
-        // Update stability
-        this.stability = this.calculateStability();
-
-        // Adjust building tiers if technology changes
-        this.adjustTiers();
-
-        // Adjust building heights if population changes significantly
-        if (abs(this.population - this.previousPopulation) > 10) {
-            this.adjustBuildingHeight(this.population);
-            this.previousPopulation = this.population; ``
-        }
-
-        // Grow or shrink tiers to meet new target heights
-        for (let iter = 0; iter < this.tiers; iter++) {
-            let targetHeight = this.target_heights[iter];
-
-            // Only grow the current tier if the previous one has reached its target
-            if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
-                if (this.dimensions[iter].z < targetHeight) {
-                    this.dimensions[iter].z += 1;
-                } else if (this.dimensions[iter].z > targetHeight) {
-                    this.dimensions[iter].z -= 1;
+                if (this.nukeEffect) {
+                    if (this.nukeEffect.isActive) {
+                        this.nukeEffect.update(this);
+                    }
                 }
             }
         }
+    }
 
-        this.techBuilding.updateTechParticles();
-        this.militaryBuilding.updateMilitaryTowers();
-        this.supportBuildings.updateSupportingBuildings();
+    update(cities) {
+        this.checkForDestruction();
+        this.handleDestruction();
 
+        if (!this.pendingDestruction && !this.isBeingDestroyed) {
+            // Constrain city stats
+            this.technology = constrain(this.technology, 0, 100);
+            this.aggression = constrain(this.aggression, 0, 100);
+            this.defense = constrain(this.defense, 0, 100);
+            this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+            this.diplomacy = constrain(this.diplomacy, 0, 100);
+
+            // Update stability
+            this.stability = this.calculateStability();
+
+            // Adjust building tiers if technology changes
+            this.adjustTiers();
+
+            // Adjust building heights if population changes significantly
+            if (abs(this.population - this.previousPopulation) > 10) {
+                this.adjustBuildingHeight(this.population);
+                this.previousPopulation = this.population; ``
+            }
+
+            this.checkForDestruction();
+
+            // Grow or shrink tiers to meet new target heights
+            for (let iter = 0; iter < this.tiers; iter++) {
+                let targetHeight = this.target_heights[iter];
+
+                // Only grow the current tier if the previous one has reached its target
+                if (iter === 0 || this.dimensions[iter - 1].z >= this.target_heights[iter - 1]) {
+                    if (this.dimensions[iter].z < targetHeight) {
+                        this.dimensions[iter].z += 1;
+                    } else if (this.dimensions[iter].z > targetHeight) {
+                        this.dimensions[iter].z -= 1;
+                    }
+                }
+            }
+
+            this.techBuilding.updateTechParticles();
+            this.militaryBuilding.updateMilitaryTowers();
+            this.supportBuildings.updateSupportingBuildings();
+        }
     }
 
 
@@ -167,9 +180,6 @@ class City {
             }
         }
     }
-
-
-
 
     initializeBuilding() {
         //console.log(`Initializing building for city ${this.id} with ${this.tiers} tiers`);
@@ -318,14 +328,92 @@ class City {
     calculateCurrentHeight() {
         let currentHeight = 0;
         for (let tier of this.dimensions) {
-            currentHeight += tier.z; 
+            currentHeight += tier.z;
         }
         return currentHeight;
     }
 
     calculateStability() {
-        return map(this.population, 100, 1000, 0, 1);;
+        return map(this.population, 0, 1000, 0, 1);;
     }
+
+    checkForDestruction() {
+        if (this.population <= 100 || this.stability < 0.2) {
+            if (!this.pendingDestruction && !this.isBeingDestroyed) {
+                this.startDestructionDelay();
+            }
+        } else if (this.pendingDestruction) {
+            // Cancel destruction if the city recovers
+            this.cancelDestructionDelay();
+        }
+    }
+
+    startDestructionDelay() {
+        this.pendingDestruction = true;
+        this.destructionTimer = millis() + 5000; // 3-second delay
+        console.log(`City ${this.id} is pending destruction.`);
+    }
+
+    cancelDestructionDelay() {
+        this.pendingDestruction = false;
+        this.destructionTimer = 0;
+        console.log(`City ${this.id} recovered from destruction.`);
+    }
+
+    handleDestruction() {
+        if (this.pendingDestruction && millis() >= this.destructionTimer) {
+            this.isBeingDestroyed = true; // Start the death animation
+            this.pendingDestruction = false; // Stop the pending destruction state
+            console.log(`City ${this.id} is being destroyed.`);
+        }
+    }
+
+    playDeathAnimation() {
+        if (this.isBeingDestroyed) {
+            let shrinkFactor = map(millis(), this.destructionTimer, this.destructionTimer + 3000, 1, -0.1); // Shrinks over 3 seconds
+
+            // Ensure the animation stops at 0
+            if (shrinkFactor <= 0) {
+                console.log("destroy city")
+                this.isDestroyed = true;
+                this.destroyCity(); // Signal that the animation is complete
+            }
+
+            push();
+            translate(this.x, this.y, this.total_height / 2);
+
+            // Shrink the city to nothing
+            scale(shrinkFactor);
+            fill(255, 50, 50, 150);
+            noStroke();
+            box(this.citySize, this.citySize, this.total_height * shrinkFactor);
+
+            pop();
+        }
+    }
+
+    destroyCity() {
+        console.log(`Removing City ${this.id} from simulation.`);
+
+        const index = cities.indexOf(this);
+        if (index === -1) {
+            console.warn(`City ${this.id} not found in cities array.`);
+            return;
+        }
+
+        // Remove the city from the cities array
+        cities.splice(index, 1);
+
+        // Schedule a respawn event if necessary
+        if (cities.length < citiesSize) {
+            console.log(`Scheduling respawn for a new city in 5000ms.`);
+            scheduleEvent("respawnCity", null, 5000, false); // Delay of 5 seconds
+        }
+
+        console.log(`City ${this.id} successfully removed.`);
+    }
+
+
 
     determineRelationships(cities) {
         //Reset all current relationships
@@ -409,16 +497,6 @@ class City {
 
             //Log Attack
             console.log(`City ${this.id} attacked City ${targetCity.id} for ${damage} damage!`);
-
-            // Check if the target city is destroyed
-            if (targetCity.population <= 100) {
-                console.log(`City at (${targetCity.id}) has been destroyed!`);
-                // Optionally, remove the city from the simulation
-                let index = cities.indexOf(targetCity);
-                if (index > -1) {
-                    cities.splice(index, 1);
-                }
-            }
         }
         //Apply drastic stat changes
         this.population += random(-50, 50);
@@ -429,14 +507,14 @@ class City {
         this.diplomacy += random(-10, 10);
 
         //Constrain Values
-        this.population = constrain(this.population, 100, 1000);
+        //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
+        //city can be destroyed
         this.technology = constrain(this.technology, 0, 100);
         this.aggression = constrain(this.aggression, 0, 100);
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
     }
-
 
     addHostile(city) {
         if (city instanceof City && city !== this && !this.hostiles.includes(city)) {

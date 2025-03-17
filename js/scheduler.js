@@ -72,8 +72,16 @@ function handleEvent(event) {
             }
             break;
 
+        case "respawnCity":
+            if (cities.length < citiesSize) {
+                spawnNewCity();
+            }
+            break;
+
         default:
             console.warn("Unknown event type:", event.type);
     }
 }
+
+
 
