@@ -47,6 +47,9 @@ function setup() {
   let canvas = createCanvas(canvasContainer.width(), canvasContainer.height(), WEBGL);
   canvas.parent("canvas-container");
 
+  directionalLight(250, 250, 250, 0, -1, -1); // Soft sunlight
+  ambientLight(100); // Ambient glow
+
   $(window).resize(function () {
     resizeScreen();
   });
@@ -138,6 +141,7 @@ function draw() {
 
   updateCityStatsMenu()
   processEvents();
+  displayNewsTicker();
 }
 
 function spawnNewCity() {
@@ -223,7 +227,7 @@ function drawClouds() {
 
 function setupClouds() {
   clouds = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 20; i++) {
     let ellipsoids = [];
     let cloudSize = random(40, 80);
 
@@ -240,9 +244,9 @@ function setupClouds() {
     }
 
     clouds.push({
-      x: random(-width / 2, width / 2),
-      y: random(-height / 2, height / 2),
-      z: random(400, 500),
+      x: random(-earthWidth / 2, earthWidth / 2),
+      y: random(-earthHeight / 2, earthHeight / 2),
+      z: random(500, 600),
       speed: random(0.1, 0.3),
       ellipsoids
     });
@@ -309,3 +313,35 @@ function updateCityStatsMenu() {
 }
 
 
+const scrollContainer = document.getElementById('scroll-container');
+
+// Function to add a new scrolling message
+function addScrollingMessage(newText) {
+  // Create a new message element
+  const message = document.createElement('div');
+  message.className = 'scroll-message';
+  message.textContent = newText;
+
+  // Dynamically calculate animation duration based on message width and screen size
+  document.body.appendChild(message); // Temporarily add to measure width
+  const messageWidth = message.offsetWidth; // Get the width of the message
+  document.body.removeChild(message); // Remove after measurement
+
+  const containerWidth = scrollContainer.offsetWidth; // Get the container width
+  const totalWidth = containerWidth + messageWidth; // Total distance to scroll
+  const duration = Math.max(totalWidth / 100, 5); // Calculate duration (100px per second, min 5s)
+
+  message.style.animationDuration = `${15}s`; // Set the animation duration  // Add the message to the container
+  scrollContainer.appendChild(message);
+
+  // Remove the message once it has finished scrolling off-screen
+  setTimeout(() => {
+    scrollContainer.removeChild(message);
+  }, duration * 1000); // Match the animation duration in milliseconds
+}
+
+// Add a new message every 3 seconds
+let counter = 1;
+setInterval(() => {
+  addScrollingMessage(`Breaking News: Message ${counter++}`);
+}, 3000);

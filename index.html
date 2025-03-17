@@ -26,16 +26,17 @@
 	<script src="js/city.js"></script>
 	<script src="js/event.js"></script>
 	<script src="js/ui.js"></script>
+	<script src="js/news.js"></script>
 
-	<script src="js/PlagueParticleSystem.js"></script>
-	<script src="js/TechBoostParticleSystem.js"></script>
-	<script src="js/NukeEffect.js"></script>
-	<script src="js/MeteorStrike.js"></script>
+	<script src="js/VisualEvents/MeteorStrike.js"></script>
+	<script src="js/VisualEvents/NukeEffect.js"></script>
+	<script src="js/VisualEvents/PlagueParticleSystem.js"></script>
+	<script src="js/VisualEvents/TechBoostParticleSystem.js"></script>
 
-	<script src="js/techBuilding.js"></script>
-	<script src="js/militaryBuilding.js"></script>
-	<script src="js/supportBuilding.js"></script>
-	<script src="js/DefenseShield.js"></script>
+	<script src="js/CityEffects/DefenseShield.js"></script>
+	<script src="js/CityEffects/militaryBuilding.js"></script>
+	<script src="js/CityEffects/supportBuilding.js"></script>
+	<script src="js/CityEffects/techBuilding.js"></script>
 
 
 	<script src="./js/sketch.js" DEFER></script>
@@ -48,9 +49,12 @@
 
 			<h1>The Great Filter Simulation</h1>
 
+
+
 			<div class="minor-section">
 				<div id="canvas-container">
 					<!-- canvas will be added here -->
+
 				</div>
 				<div class="fullscreen-box">
 					<button id="fullscreen">Fullscreen</button>
@@ -71,7 +75,10 @@
 			<div class="city-stats-menu draggable">
 				<h3>City Stats</h3>
 				<p id="city-stats-content">Select a city to view stats.</p>
-			  </div>
+			</div>
+
+			<div id="scroll-container"></div>
+
 
 		</section>
 
