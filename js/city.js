@@ -47,6 +47,8 @@ class City {
         this.techBuilding = new TechBuilding(this);
         this.militaryBuilding = new MilitaryBuilding(this);
         this.supportBuildings = new SupportBuildings(this);
+        this.defenseShield = new DefenseShield(this);
+
 
     }
 
@@ -78,7 +80,12 @@ class City {
         this.techBuilding.renderTechEffects();
         this.militaryBuilding.renderMilitaryStrengthEffect();
         this.supportBuildings.renderSupportingBuildings();
-        this.plagueParticles.update();
+        this.defenseShield.render();
+
+        // Draw the plague particles
+        if (this.isPlagued) {
+            this.plagueParticles.update();
+        }
 
         if (this.nukeEffect) {
             if (this.nukeEffect.isActive) {
@@ -108,10 +115,6 @@ class City {
             this.adjustBuildingHeight(this.population);
             this.previousPopulation = this.population; ``
         }
-
-
-
-
 
         // Grow or shrink tiers to meet new target heights
         for (let iter = 0; iter < this.tiers; iter++) {
@@ -310,6 +313,14 @@ class City {
             running_total += this.target_heights[ctr];
         }
         return running_total;
+    }
+
+    calculateCurrentHeight() {
+        let currentHeight = 0;
+        for (let tier of this.dimensions) {
+            currentHeight += tier.z; 
+        }
+        return currentHeight;
     }
 
     calculateStability() {
