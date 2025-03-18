@@ -30,7 +30,7 @@ function processEvents() {
 
     scheduler = scheduler.filter(event => {
         if (currentTime >= event.executeAt) {
-            console.log(`executing event: ${event}`)
+            //console.log(`executing event: ${event}`)
             handleEvent(event); // Execute the event
             if (event.repeat) {
                 // Reset the timer for the event using its delay
@@ -59,10 +59,11 @@ function handleEvent(event) {
             if (event.target && event.target instanceof City) {
                 if (event.target.hostiles.length > 0) {
                     for(city in event.target.hostiles) {
-                        let rng = random(0, 100);
+                        let rng = random(0, 50);
                         let techDiff = event.target.technology - city.technology;
                         let strengthDiff = event.target.militaryStrength - city.militaryStrength;
                         if(map(techDiff, -100, 100, -15, 15) + map(strengthDiff, -100, 100, -35, 35) + map(event.target.aggression, 0, 100, 0, 70) < rng) {
+                            console.log("Attack successful");
                             event.target.attack(city);
                         }
                     }

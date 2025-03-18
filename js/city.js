@@ -23,13 +23,15 @@ class City {
         this.militaryStrength = random(20, 70);
         /**Determines how likely the city is to form alliances */
         this.diplomacy = random(20, 70);
+        /** Affects how other cities will feel about this city */
+        this.reputation = random(30, 80);
 
         // Schedule initial relationship update
-        scheduleEvent("updateRelationships", this, 3000, true);
+        scheduleEvent("updateRelationships", this, 5000, true);
         scheduleEvent("trade", this, 5000, true);
         scheduleEvent("statChange", this, 7000, true);
-        scheduleEvent("attack", this, 10000, true);
-        scheduleEvent("plague", this, 30000, true);
+        scheduleEvent("attack", this, 5000, true);
+        scheduleEvent("plague", this, 15000, true);
 
         // Initialize building properties
         this.tiers = floor(map(this.technology, 0, 100, 1, 5)); // Tiers based on technology
@@ -158,23 +160,23 @@ class City {
 
         // Position the ID slightly above the city
         translate(this.x, this.y, this.total_height + 70); // 20 units above the city\
-        rotateX(HALF_PI*3 ); // Rotate the text to face the camera
-        rotateY(frameCount /50); // Spin the text for fun    
-    
+        rotateX(HALF_PI * 3); // Rotate the text to face the camera
+        rotateY(frameCount / 50); // Spin the text for fun    
+
         // Holographic text style
         let holographicColor = color(0, 255, 255, 150); // Cyan with alpha for transparency
         fill(holographicColor);
         noStroke();
-    
+
         // Pulsing effect for the holographic number
         textFont(myFont);
         let textSizePulse = map(sin(frameCount * 0.1), -1, 1, 24, 32); // Text size pulses between 14 and 18
         textSize(textSizePulse);
         textAlign(CENTER, CENTER);
-    
+
         // Draw the city ID
         text(`#${this.id}`, 0, 0); // Display the ID (e.g., #0, #1, etc.)
-   
+
         pop();
     }
 
@@ -381,27 +383,27 @@ class City {
 
     startDestructionDelay() {
         this.pendingDestruction = true;
-        this.destructionTimer = millis() + 5000; // 3-second delay
-        console.log(`City ${this.id} is pending destruction.`);
+        this.destructionTimer = millis() + 7000; // 3-second delay
+        //console.log(`City ${this.id} is pending destruction.`);
     }
 
     cancelDestructionDelay() {
         this.pendingDestruction = false;
         this.destructionTimer = 0;
-        console.log(`City ${this.id} recovered from destruction.`);
+        //console.log(`City ${this.id} recovered from destruction.`);
     }
 
     handleDestruction() {
         if (this.pendingDestruction && millis() >= this.destructionTimer) {
             this.isBeingDestroyed = true; // Start the death animation
             this.pendingDestruction = false; // Stop the pending destruction state
-            console.log(`City ${this.id} is being destroyed.`);
+            //console.log(`City ${this.id} is being destroyed.`);
         }
     }
 
     playDeathAnimation() {
         if (this.isBeingDestroyed) {
-            let shrinkFactor = map(millis(), this.destructionTimer, this.destructionTimer + 3000, 1, -0.1); // Shrinks over 3 seconds
+            let shrinkFactor = map(millis(), this.destructionTimer, this.destructionTimer + 5000, 1, -0.1); // Shrinks over 3 seconds
 
             // Ensure the animation stops at 0
             if (shrinkFactor <= 0) {
@@ -424,7 +426,7 @@ class City {
     }
 
     destroyCity() {
-        console.log(`Removing City ${this.id} from simulation.`);
+        //console.log(`Removing City ${this.id} from simulation.`);
 
         const index = cities.indexOf(this);
         if (index === -1) {
@@ -437,35 +439,109 @@ class City {
 
         // Schedule a respawn event if necessary
         if (cities.length < citiesSize) {
-            console.log(`Scheduling respawn for a new city in 5000ms.`);
-            scheduleEvent("respawnCity", null, 5000, false); // Delay of 5 seconds
+            //console.log(`Scheduling respawn for a new city in 5000ms.`);
+            scheduleEvent("respawnCity", null, random(5000, 10000), false); // Delay of 5 seconds
         }
 
-        console.log(`City ${this.id} successfully removed.`);
+        //console.log(`City ${this.id} successfully removed.`);
         queueMessage(`City ${this.id} is no longer with us, free LOOT!`);
     }
 
     determineRelationships(cities) {
-        //Reset all current relationships
-        this.hostiles = [];
-        this.allies = [];
+        this.hostiles = this.hostiles.filter(city => !city.isDestroyed);
+        this.allies = this.allies.filter(city => !city.isDestroyed);
 
-        for (let city of cities) {
-            //Skip self
-            if (city === this) {
-                continue;
-            }
+        // Rrandomly decide what to do
+        let action = random(["<<<<<<PEANUT BUTTERR>>>>>>", "ally", "hostile", "nothing"]);
 
-            // Determine relationship based on this city's stats
-            if (this.aggression > 80 && this.aggression > city.diplomacy) {
-                this.addHostile(city);
-                // Ensure the other city also marks this city as hostile
-                city.addHostile(this);
-            } else if (this.diplomacy > 50 && city.diplomacy > 50) {
-                this.addAlly(city);
-                // Ensure the other city also marks this city as an ally
-                city.addAlly(this);
+        if (action === "ally") {
+            this.handleAllyLogic(cities);
+        } else if (action === "hostile") {
+            this.handleHostileLogic(cities);
+        }
+    }
+    handleAllyLogic(cities) {
+        const MAX_ALLIES = 4;
+
+        // If at the cap, randomly remove an ally
+        if (this.allies.length >= MAX_ALLIES) {
+            if (random() < 0.5) {
+                let removedAlly = random(this.allies);
+                this.removeAlly(removedAlly);
+                removedAlly.removeAlly(this);
+                console.log(`City ${this.id} removed City ${removedAlly.id} as an ally`);
             }
+        }
+
+        // Attempt to find a new ally
+        this.findBestAlly(cities);
+    }
+
+    handleHostileLogic(cities) {
+        const MAX_HOSTILES = 3; // Maximum number of hostiles allowed
+
+        if (this.hostiles.length >= MAX_HOSTILES) {
+            if (random() < 0.5) {
+                let removedHostile = random(this.hostiles);
+                this.removeHostile(removedHostile);
+                removedHostile.removeHostile(this);
+                console.log(`City ${this.id} removed City ${removedHostile.id} as a hostile`);
+            }
+        }
+
+        // Attempt to mark a new hostile
+        this.findBestHostile(cities);
+    }
+    findBestAlly(cities) {
+        let potentialAllies = cities.filter(city =>
+            city !== this &&
+            !this.allies.includes(city) &&
+            !this.hostiles.includes(city) &&
+            !city.isDestroyed
+        );
+
+        if (potentialAllies.length === 0) return;
+
+        // Evaluate each city 
+        let bestAlly = potentialAllies.reduce((best, city) => {
+            let score = city.diplomacy * 2 + city.reputation + city.stability * 10;
+
+            return score > best.score ? { city, score } : best;
+        }, { city: null, score: -Infinity });
+
+        if (bestAlly.city) {
+            this.addAlly(bestAlly.city);
+            bestAlly.city.addAlly(this);
+            //console.log(`City ${this.id} allied with City ${bestAlly.city.id}`);
+        }
+    }
+
+    findBestHostile(cities) {
+        let potentialHostiles = cities.filter(city =>
+            city !== this &&
+            !this.hostiles.includes(city) &&
+            !this.allies.includes(city) &&
+            !city.isDestroyed
+        );
+
+        if (potentialHostiles.length === 0) return;
+
+        // evalute citys based on agression and distance
+        let bestHostile = potentialHostiles.reduce((best, city) => {
+            let distance = dist(this.x, this.y, city.x, city.y);
+            let score = city.aggression * 2 + map(distance, 0, 500, 10, 0);
+
+            //  bonus for shared hostiles
+            let sharedHostiles = this.hostiles.filter(hostile => city.hostiles.includes(hostile)).length;
+            score += sharedHostiles * 5;
+
+            return score > best.score ? { city, score } : best;
+        }, { city: null, score: -Infinity });
+
+        if (bestHostile.city) {
+            this.addHostile(bestHostile.city);
+            bestHostile.city.addHostile(this);
+            //console.log(`City ${this.id} marked City ${bestHostile.city.id} as hostile`);
         }
     }
 
@@ -492,17 +568,17 @@ class City {
     }
 
     plague() {
-        console.log("Testing plague: ")
+        //console.log("Testing plague: ")
         let plague_chance = 5 + 55 * this.population / 10000 + 30 * this.stability;
-        console.log(plague_chance)
-        if (plague_chance <= random(0, 100)) {
-            console.log("Plague started")
+        //console.log(plague_chance)
+        if (plague_chance <= random(0, 90)) {
+            //console.log("Plague started")
             this.triggerPlagueEffect;
         }
     }
 
     applyStatChange() {
-        console.log("Changing Stats")
+        //console.log("Changing Stats")
         // Technology boosts population growth, stability decreases it.
         let pop_variance = map(this.stability, 0, 1, 0, 30);
         this.population += map(random(-60 + pop_variance, 20 + pop_variance) + map(this.technology, 0, 100, 0, 5), -30, 35, -50, 50);
@@ -534,9 +610,9 @@ class City {
                 let damage = this.militaryStrength - targetCity.defense;
                 damage = constrain(damage, 10, 100);
 
-            //Reduce stats 
-            targetCity.defense += map(this.militaryStrength - targetCity.defense, 0, 100, -20, -30);
-            this.militaryStrength += map(this.militaryStrength - targetCity.defense, 0, 100, -40, -10);
+                //Reduce stats 
+                targetCity.defense += map(this.militaryStrength - targetCity.defense, 0, 100, -20, -30);
+                this.militaryStrength += map(this.militaryStrength - targetCity.defense, 0, 100, -40, -10);
 
                 //Increase aggression due to victory
 
@@ -546,7 +622,7 @@ class City {
                 targetCity.population = constrain(targetCity.population, 100, 1000);
 
                 //Log Attack
-                queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
+                queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage.toFixed(0)} damage!`);
 
             }
             //Apply drastic stat changes

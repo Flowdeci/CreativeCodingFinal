@@ -17,7 +17,7 @@ let clouds = [];
 
 let myFont;
 
-function preload(){
+function preload() {
   myFont = loadFont('assets/fonts/Raleway-Italic-VariableFont_wght.ttf');
 }
 function resizeScreen() {
@@ -133,6 +133,10 @@ function draw() {
       city.update();
     }
     pop();
+  }
+
+  if (selectedCity) {
+    drawRelationshipLines(selectedCity);
   }
 
   if (activeMeteorStrike) {
@@ -309,11 +313,34 @@ function updateCityStatsMenu() {
       <strong>Defense:</strong> ${selectedCity.defense.toFixed(2)}<br>
       <strong>Military Strength:</strong> ${selectedCity.militaryStrength.toFixed(2)}<br>
       <strong>Diplomacy:</strong> ${selectedCity.diplomacy.toFixed(2)}<br>
-      <strong>Stability:</strong> ${selectedCity.stability.toFixed(2)}
+      <strong>Stability:</strong> ${selectedCity.stability.toFixed(2)}<br>
+      <strong>Reputation:</strong> ${selectedCity.reputation.toFixed(2)}<br>
     `;
   } else {
     statsContent.textContent = 'Select a city to view stats.';
   }
 }
 
+function drawRelationshipLines(city) {
+  push();
+  strokeWeight(2);
+
+  // Draw lines to allies
+  for (let ally of city.allies) {
+    if (!ally.isBeingDestroyed) {
+      stroke(0, 0, 255, 150);
+      line(city.x, city.y, city.total_height, ally.x, ally.y, ally.total_height);
+    }
+  }
+
+  // Draw lines to hostiles
+  for (let hostile of city.hostiles) {
+    if (!hostile.isBeingDestroyed) {
+      stroke(255, 0, 0, 150);
+      line(city.x, city.y, city.total_height, hostile.x, hostile.y, hostile.total_height);
+    }
+  }
+
+  pop();
+}
 
