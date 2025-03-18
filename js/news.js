@@ -36,7 +36,7 @@ function queueMessage(newText) {
 // Start processing the queue every 5 seconds
 setInterval(() => {
     processMessageQueue();
-}, 2500);
+}, 3000);
 
 
 

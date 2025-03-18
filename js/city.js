@@ -411,9 +411,8 @@ class City {
         }
 
         console.log(`City ${this.id} successfully removed.`);
+        queueMessage(`City ${this.id} is no longer with us, free LOOT!`);
     }
-
-
 
     determineRelationships(cities) {
         //Reset all current relationships
@@ -435,7 +434,6 @@ class City {
                 this.addAlly(city);
                 // Ensure the other city also marks this city as an ally
                 city.addAlly(this);
-                queueMessage(`City ${this.id} formed an alliance with City ${city.id}.`);
             }
         }
     }
@@ -458,7 +456,7 @@ class City {
             this.technology = constrain(this.technology, 0, 100);
             ally.technology = constrain(ally.technology, 0, 100);
 
-            console.log(`Trade completed between (${this.id}) and (${ally.id})`);
+            //console.log(`Trade completed between (${this.id}) and (${ally.id})`);
         }
     }
 
@@ -497,8 +495,7 @@ class City {
             targetCity.population = constrain(targetCity.population, 100, 1000);
 
             //Log Attack
-            console.log(`City ${this.id} attacked City ${targetCity.id} for ${damage} damage!`);
-            //queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
+            queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
 
         }
         //Apply drastic stat changes

@@ -12,6 +12,7 @@ function nukeCity(city) {
 
         city.triggerNukeEffect();
         console.log(`City ${city.id} has been nuked! Population: ${city.population}, Aggression: ${city.aggression}`);
+        queueMessage(`City ${city.id} has been nuked!!!!`);
     }
 
 }
@@ -27,6 +28,7 @@ function techBoost(city) {
 
         city.techBuilding.triggerTechBoostEffect();
         //console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
+        queueMessage(`City ${city.id} received a tech boost! SHoutout to the tech brosqn!`);
     }
 }
 
@@ -50,6 +52,7 @@ function plague(city) {
                 city.allies[i].stability *= 0.8;
             }
         }
+        queueMessage(`City ${city.id} has been plagued! LOCKDOWN!`);
     }
 }
 
@@ -66,5 +69,7 @@ function meteorStrike(cities) {
     activeMeteorStrike = new MeteorStrike(cities);
 
     console.log("A meteor strike has affected all cities!");
+    queueMessage("METTTEOOOOOORSSSSSSSSSSSSS");
+    
 }
 
