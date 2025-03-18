@@ -58,8 +58,14 @@ function handleEvent(event) {
         case "attack":
             if (event.target && event.target instanceof City) {
                 if (event.target.hostiles.length > 0) {
-                    let randomHostile = event.target.hostiles[floor(random(event.target.hostiles.length))];
-                    event.target.attack(randomHostile);
+                    for(city in event.target.hostiles) {
+                        let rng = random(0, 100);
+                        let techDiff = event.target.technology - city.technology;
+                        let strengthDiff = event.target.militaryStrength - city.militaryStrength;
+                        if(map(techDiff, -100, 100, -15, 15) + map(strengthDiff, -100, 100, -35, 35) + map(event.target.aggression, 0, 100, 0, 70) < rng) {
+                            event.target.attack(city);
+                        }
+                    }
                 }
             }
             break;
