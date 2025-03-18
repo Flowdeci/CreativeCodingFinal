@@ -25,6 +25,7 @@ function scheduleEvent(type, target, delay, repeat, data = {}) {
  * Processes the scheduler and executes due events.
  */
 function processEvents() {
+    console.log(scheduler)
     let currentTime = millis();
 
     scheduler = scheduler.filter(event => {
@@ -47,6 +48,7 @@ function processEvents() {
  * @param {Object} event - The event to handle.
  */
 function handleEvent(event) {
+    console.log("Event type: ", event.type);
     switch (event.type) {
         case "updateRelationships":
             if (event.target && event.target instanceof City) {
@@ -71,7 +73,10 @@ function handleEvent(event) {
                 event.target.applyStatChange(); // Apply drastic stat changes
             }
             break;
-
+        case "plague":
+            if (event.target && event.target instanceof City) {
+                event.target.plague();
+            }
         case "respawnCity":
             if (cities.length < citiesSize) {
                 spawnNewCity();

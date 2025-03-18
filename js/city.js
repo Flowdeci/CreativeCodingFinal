@@ -28,6 +28,7 @@ class City {
         scheduleEvent("trade", this, 5000, true);
         scheduleEvent("statChange", this, 7000, true);
         scheduleEvent("attack", this, 10000, true);
+        scheduleEvent("plague", this, 30000, true);
 
         // Initialize building properties
         this.tiers = floor(map(this.technology, 0, 100, 1, 5)); // Tiers based on technology
@@ -123,6 +124,8 @@ class City {
 
             // Adjust building heights if population changes significantly
             if (abs(this.population - this.previousPopulation) > 10) {
+            //Decrease stability for large population changes
+            this.stability -= map(abs(this.population - this.previousPopulation), 0, 10, 0, 0.01)
                 this.adjustBuildingHeight(this.population);
                 this.previousPopulation = this.population; ``
             }
@@ -444,11 +447,11 @@ class City {
     trade() {
         for (let ally of this.allies) {
             // Simulate Trading Resources
-            let tradeAmount = random(1, 3);
+            let tradeAmount = map(this.population, 100, 1000, 0, 1) + this.stability + map(this.diplomacy, 0, 100, 0, 1);
             this.population += tradeAmount;
             ally.population += tradeAmount;
 
-            let techTransfer = random(0.5, 2);
+            let techTransfer = map(this.technology, 0, 100, 0, 1) + this.stability * 0.5 + map(this.diplomacy, 0, 100, 0, 0.5);
             this.technology += techTransfer;
             ally.technology += techTransfer;
 
@@ -463,18 +466,34 @@ class City {
         }
     }
 
-    applyStatChange() {
-        // Technology boosts population growth
-        this.population += random(-10, 10) + map(this.technology, 0, 100, 0, 5);
+    plague() {
+        console.log("Testing plague: ")
+        let plague_chance = 5 + 55 * this.population / 10000 + 30 * this.stability;
+        console.log(plague_chance)
+        if (plague_chance <= random(0, 100)) {
+            console.log("Plague started")
+            this.triggerPlagueEffect;
+        }
+    }
 
-        // Aggression reduces stability
-        this.stability -= map(this.aggression, 0, 100, 0, 0.1);
+    applyStatChange() {
+        console.log("Changing Stats")
+        // Technology boosts population growth, stability decreases it.
+        let pop_variance = map(this.stability, 0, 1, 0, 30);
+        this.population += map(random(-60 + pop_variance, 20 + pop_variance) + map(this.technology, 0, 100, 0, 5), -30, 35, -50, 50);
+
+        // Aggression and plauges reduces stability
+        this.stability -= map(this.aggression, 0, 100, 0, 0.1) + this.isPlagued * 0.01;
 
         // Diplomacy boosts population and technology
         this.population += map(this.diplomacy, 0, 100, 0, 3);
         this.technology += map(this.diplomacy, 0, 100, 0, 2);
 
+        // Population increases aggression
+        this.aggression += map(this.population, 100, 1000, 0, 5);
+
         // Constrain values
+        this.stability = constrain(this.stability, 0, 1);
         this.population = constrain(this.population, 100, 1000);
         this.technology = constrain(this.technology, 0, 100);
         this.aggression = constrain(this.aggression, 0, 100);
@@ -490,8 +509,11 @@ class City {
             damage = constrain(damage, 10, 100);
 
             //Reduce stats 
-            targetCity.defense += random(-30, -20);
-            this.militaryStrength += random(-40, -30);
+            targetCity.defense += map(target.militaryStrength - targetCity.defense, 0, 100, -20, -30);
+            this.militaryStrength += map(target.militaryStrength - targetCity.defense, 0, 100, -40, -10);
+
+            //Increase aggression due to victory
+            
 
             //Apply damage to target city's population
             targetCity.population -= damage;
@@ -502,12 +524,12 @@ class City {
 
         }
         //Apply drastic stat changes
-        this.population += random(-50, 50);
-        this.technology += random(-10, 15);
-        this.aggression += random(-10, 10);
-        this.defense += random(-10, 20);
-        this.militaryStrength += random(-10, 20);
-        this.diplomacy += random(-10, 10);
+        this.population += map(this.militaryStrength - targetCity.defense, -100, 100, -500, 0);
+        this.technology += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 15);
+        this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -30, 30)
+        this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -100, 0);
+        this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 20);
+        this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -20, 20)
 
         //Constrain Values
         //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
