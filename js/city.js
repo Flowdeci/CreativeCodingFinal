@@ -6,8 +6,9 @@ class City {
         this.y = y;
 
         this.population = random(200, 1000);
+        this.previousPopulation = this.population;
         this.citySize = map(this.population, 100, 1000, 40, 100);
-        this.stability = this.calculateStability()
+        this.stability = random(0.5, 1);
         this.hostiles = []
         this.allies = []
 
@@ -36,7 +37,6 @@ class City {
         this.target_heights = [];
         this.dimensions = [];
         this.total_height = 0;
-        this.previousPopulation = population
         this.initializeBuilding()
 
         //Particle System for plague
@@ -75,6 +75,8 @@ class City {
                 this.renderBuilding();
                 pop()
 
+                this.renderCityID();
+
                 //Selected city effect
                 if (selectedCity === this) {
                     push();
@@ -105,6 +107,7 @@ class City {
     }
 
     update(cities) {
+        this.stability = this.calculateStability();
         this.checkForDestruction();
         this.handleDestruction();
 
@@ -116,18 +119,16 @@ class City {
             this.militaryStrength = constrain(this.militaryStrength, 0, 100);
             this.diplomacy = constrain(this.diplomacy, 0, 100);
 
-            // Update stability
-            this.stability = this.calculateStability();
 
             // Adjust building tiers if technology changes
             this.adjustTiers();
 
             // Adjust building heights if population changes significantly
             if (abs(this.population - this.previousPopulation) > 10) {
-            //Decrease stability for large population changes
-            this.stability -= map(abs(this.population - this.previousPopulation), 0, 10, 0, 0.01)
+                //Decrease stability for large population changes
+                this.stability -= map(abs(this.population - this.previousPopulation), 0, 10, 0, 0.01)
                 this.adjustBuildingHeight(this.population);
-                this.previousPopulation = this.population; ``
+                this.previousPopulation = this.population;
             }
 
             this.checkForDestruction();
@@ -152,6 +153,30 @@ class City {
         }
     }
 
+    renderCityID() {
+        push();
+
+        // Position the ID slightly above the city
+        translate(this.x, this.y, this.total_height + 70); // 20 units above the city\
+        rotateX(HALF_PI*3 ); // Rotate the text to face the camera
+        rotateY(frameCount /50); // Spin the text for fun    
+    
+        // Holographic text style
+        let holographicColor = color(0, 255, 255, 150); // Cyan with alpha for transparency
+        fill(holographicColor);
+        noStroke();
+    
+        // Pulsing effect for the holographic number
+        textFont(myFont);
+        let textSizePulse = map(sin(frameCount * 0.1), -1, 1, 24, 32); // Text size pulses between 14 and 18
+        textSize(textSizePulse);
+        textAlign(CENTER, CENTER);
+    
+        // Draw the city ID
+        text(`#${this.id}`, 0, 0); // Display the ID (e.g., #0, #1, etc.)
+   
+        pop();
+    }
 
     triggerNukeEffect() {
         this.nukeEffect = new NukeEffect(this.x, this.y);
@@ -503,42 +528,44 @@ class City {
     }
 
     attack(targetCity) {
-        if (this.hostiles.includes(targetCity) && this.militaryStrength > targetCity.defense) {
-            //Calculate damage
-            let damage = this.militaryStrength - targetCity.defense;
-            damage = constrain(damage, 10, 100);
+        if (targetCity) {
+            if (this.hostiles.includes(targetCity) && this.militaryStrength > targetCity.defense) {
+                //Calculate damage
+                let damage = this.militaryStrength - targetCity.defense;
+                damage = constrain(damage, 10, 100);
 
-            //Reduce stats 
-            targetCity.defense += map(target.militaryStrength - targetCity.defense, 0, 100, -20, -30);
-            this.militaryStrength += map(target.militaryStrength - targetCity.defense, 0, 100, -40, -10);
+                //Reduce stats 
+                targetCity.defense += map(this.militaryStrength - targetCity.defense, 0, 100, -20, -30);
+                this.militaryStrength += map(this.militaryStrength - targetCity.defense, 0, 100, -40, -10);
 
-            //Increase aggression due to victory
-            
+                //Increase aggression due to victory
 
-            //Apply damage to target city's population
-            targetCity.population -= damage;
-            targetCity.population = constrain(targetCity.population, 100, 1000);
 
-            //Log Attack
-            queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
+                //Apply damage to target city's population
+                targetCity.population -= damage;
+                targetCity.population = constrain(targetCity.population, 100, 1000);
 
+                //Log Attack
+                queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
+
+            }
+            //Apply drastic stat changes
+            this.population += map(this.militaryStrength - targetCity.defense, -100, 100, -500, 0);
+            this.technology += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 15);
+            this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -30, 30)
+            this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -100, 0);
+            this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 20);
+            this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -20, 20)
+
+            //Constrain Values
+            //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
+            //city can be destroyed
+            this.technology = constrain(this.technology, 0, 100);
+            this.aggression = constrain(this.aggression, 0, 100);
+            this.defense = constrain(this.defense, 0, 100);
+            this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+            this.diplomacy = constrain(this.diplomacy, 0, 100);
         }
-        //Apply drastic stat changes
-        this.population += map(this.militaryStrength - targetCity.defense, -100, 100, -500, 0);
-        this.technology += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 15);
-        this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -30, 30)
-        this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -100, 0);
-        this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 20);
-        this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -20, 20)
-
-        //Constrain Values
-        //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
-        //city can be destroyed
-        this.technology = constrain(this.technology, 0, 100);
-        this.aggression = constrain(this.aggression, 0, 100);
-        this.defense = constrain(this.defense, 0, 100);
-        this.militaryStrength = constrain(this.militaryStrength, 0, 100);
-        this.diplomacy = constrain(this.diplomacy, 0, 100);
     }
 
     addHostile(city) {

@@ -15,6 +15,11 @@ let flashTime = 0;  // Timer to control how long the flash lasts
 
 let clouds = [];
 
+let myFont;
+
+function preload(){
+  myFont = loadFont('assets/fonts/Raleway-Italic-VariableFont_wght.ttf');
+}
 function resizeScreen() {
   // Update the center of the canvas
   centerHorz = canvasContainer.width() / 2;

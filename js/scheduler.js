@@ -25,7 +25,7 @@ function scheduleEvent(type, target, delay, repeat, data = {}) {
  * Processes the scheduler and executes due events.
  */
 function processEvents() {
-    console.log(scheduler)
+    //console.log(scheduler)
     let currentTime = millis();
 
     scheduler = scheduler.filter(event => {
@@ -48,7 +48,7 @@ function processEvents() {
  * @param {Object} event - The event to handle.
  */
 function handleEvent(event) {
-    console.log("Event type: ", event.type);
+    //console.log("Event type: ", event.type);
     switch (event.type) {
         case "updateRelationships":
             if (event.target && event.target instanceof City) {

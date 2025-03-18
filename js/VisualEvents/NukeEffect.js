@@ -36,7 +36,7 @@ class NukeEffect {
                 if (city.defense < 50) {
                     city.population *= 0.5;//Halve population
                     city.aggression += 20;//Increase aggresssion 
-                    city.stability *= 0.5;//Decrease stabilitiy
+                    city.stability -=0.1;//Decrease stabilitiy
                     if (city) {
                         city.destroyBuilding();
                         console.log(`Nuke hit City ${city.id}, destroying a building.`);
