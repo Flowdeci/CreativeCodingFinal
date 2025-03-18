@@ -1,38 +1,42 @@
-// news.js - Responsible for managing the news ticker
+let scrollContainer;
+document.addEventListener('DOMContentLoaded', () => {
+    scrollContainer = document.getElementById('scroll-container');
+});
+const messageQueue = [];
 
-let newsQueue = []; // Array to store news items
+function addScrollingMessage(newText) {
+    // Create a new message element
+    const message = document.createElement('div');
+    message.className = 'scroll-message';
+    message.textContent = newText;
 
-/**
- * Add a news item to the ticker queue.
- * @param {string} message - The message to display in the ticker.
- */
-function addNewsItem(message) {
-    const timestamp = new Date().toLocaleTimeString(); // Current time
-    newsQueue.push(`[${timestamp}] ${message}`); // Add the message with a timestamp
+    message.style.animationDuration = `${15}s`;
+    scrollContainer.appendChild(message);
 
-    console.log(`News: ${message}`); // Optional: Log the news to the console
+    // Remove the message once it has finished scrolling off-screen
+    setTimeout(() => {
+        scrollContainer.removeChild(message);
+    }, 15 * 1000);
 }
 
-/**
- * Render the news ticker.
- */
-function displayNewsTicker() {
-    const tickerContainer = document.getElementById('news-ticker-container');
-    if (!tickerContainer) {
-        console.warn("News ticker container not found!");
-        return;
+// Function to process the message queue
+function processMessageQueue() {
+    if (messageQueue.length > 0) {
+        const nextMessage = messageQueue.shift();
+        addScrollingMessage(nextMessage);
     }
-
-    // Clear the container
-    tickerContainer.innerHTML = "";
-
-    // Create the ticker content
-    const tickerContent = document.createElement('div');
-    tickerContent.className = 'ticker-content'; // Apply scrolling animation
-    tickerContent.innerHTML = newsQueue.map(news => `<span>${news}</span>`).join(" • "); // Add real news
-
-    // Add the ticker content to the container
-    tickerContainer.appendChild(tickerContent);
-
-    console.log("News ticker updated:", tickerContent.innerHTML);
 }
+
+// Function to add a message to the queue
+function queueMessage(newText) {
+    console.log(`Queuing message: ${newText}`);
+    messageQueue.push(newText);
+}
+
+// Start processing the queue every 5 seconds
+setInterval(() => {
+    processMessageQueue();
+}, 2500);
+
+
+

@@ -435,7 +435,7 @@ class City {
                 this.addAlly(city);
                 // Ensure the other city also marks this city as an ally
                 city.addAlly(this);
-                addNewsItem(`City ${this.id} formed an alliance with City ${city.id}.`);
+                queueMessage(`City ${this.id} formed an alliance with City ${city.id}.`);
             }
         }
     }
@@ -498,7 +498,7 @@ class City {
 
             //Log Attack
             console.log(`City ${this.id} attacked City ${targetCity.id} for ${damage} damage!`);
-            addNewsItem(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
+            //queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage} damage!`);
 
         }
         //Apply drastic stat changes

@@ -141,7 +141,6 @@ function draw() {
 
   updateCityStatsMenu()
   processEvents();
-  displayNewsTicker();
 }
 
 function spawnNewCity() {
@@ -313,35 +312,3 @@ function updateCityStatsMenu() {
 }
 
 
-const scrollContainer = document.getElementById('scroll-container');
-
-// Function to add a new scrolling message
-function addScrollingMessage(newText) {
-  // Create a new message element
-  const message = document.createElement('div');
-  message.className = 'scroll-message';
-  message.textContent = newText;
-
-  // Dynamically calculate animation duration based on message width and screen size
-  document.body.appendChild(message); // Temporarily add to measure width
-  const messageWidth = message.offsetWidth; // Get the width of the message
-  document.body.removeChild(message); // Remove after measurement
-
-  const containerWidth = scrollContainer.offsetWidth; // Get the container width
-  const totalWidth = containerWidth + messageWidth; // Total distance to scroll
-  const duration = Math.max(totalWidth / 100, 5); // Calculate duration (100px per second, min 5s)
-
-  message.style.animationDuration = `${15}s`; // Set the animation duration  // Add the message to the container
-  scrollContainer.appendChild(message);
-
-  // Remove the message once it has finished scrolling off-screen
-  setTimeout(() => {
-    scrollContainer.removeChild(message);
-  }, duration * 1000); // Match the animation duration in milliseconds
-}
-
-// Add a new message every 3 seconds
-let counter = 1;
-setInterval(() => {
-  addScrollingMessage(`Breaking News: Message ${counter++}`);
-}, 3000);
