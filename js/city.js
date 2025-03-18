@@ -534,9 +534,9 @@ class City {
                 let damage = this.militaryStrength - targetCity.defense;
                 damage = constrain(damage, 10, 100);
 
-                //Reduce stats 
-                targetCity.defense += map(this.militaryStrength - targetCity.defense, 0, 100, -20, -30);
-                this.militaryStrength += map(this.militaryStrength - targetCity.defense, 0, 100, -40, -10);
+            //Reduce stats 
+            targetCity.defense += map(this.militaryStrength - targetCity.defense, 0, 100, -20, -30);
+            this.militaryStrength += map(this.militaryStrength - targetCity.defense, 0, 100, -40, -10);
 
                 //Increase aggression due to victory
 
