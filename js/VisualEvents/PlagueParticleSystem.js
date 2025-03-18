@@ -6,6 +6,14 @@ class PlagueParticleSystem {
         this.particles = [];
         this.color = color
 
+        this.audio = {
+            sick1: new Audio('assets/sounds/sick5.wav'),
+            sick2: new Audio('assets/sounds/sick6.wav'),
+            sick3: new Audio('assets/sounds/sick7.wav'),
+            sick4: new Audio('assets/sounds/sick8.wav'),
+        }
+
+       
     }
 
     emit() {
@@ -32,6 +40,28 @@ class PlagueParticleSystem {
         this.cityHeight = newHeight;
     }
 
+    startAudioLoop() {
+        this.audioInterval = setInterval(() => {
+            const randomAudioKey = `sick${Math.ceil(Math.random() * 4)}`;
+            const randomAudio = this.audio[randomAudioKey];
+
+            randomAudio.currentTime = 0;
+            randomAudio.play();
+        }, 1000);
+    }
+
+    // Stop the random audio playback loop
+    stopAudioLoop() {
+        this.isActive = false; 
+        if (this.audioInterval) {
+            clearInterval(this.audioInterval);
+            this.audioInterval = null;
+        }
+        Object.values(this.audio).forEach((audio) => {
+            audio.pause();
+            audio.currentTime = 0; 
+        });
+    }
 }
 
 class PlagueParticle {
@@ -43,13 +73,13 @@ class PlagueParticle {
         this.lifespan = random(255, 750);
         this.color = color;
 
-        const zMin = map(cityHeight, 50, 200, 0.5, 1.5); 
-        const zMax = map(cityHeight, 50, 200, 1.5, 3.5); 
+        const zMin = map(cityHeight, 50, 200, 0.5, 1.5);
+        const zMax = map(cityHeight, 50, 200, 1.5, 3.5);
 
         // Initialize velocity with random values
         this.velocity = createVector(
-            random(-3, 3), 
-            random(-3, 3), 
+            random(-3, 3),
+            random(-3, 3),
             random(zMin, zMax) //random z velocity with city height influence
         );
 

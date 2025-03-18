@@ -7,6 +7,7 @@ class NukeEffect {
         this.shockwaveRadius = 0;
         this.isActive = false;
         this.hasExploded = false;
+        this.sound=new Audio('assets/sounds/nuke.mp3');
     }
 
     start() {
@@ -31,10 +32,17 @@ class NukeEffect {
             if (this.z <= 0) {
                 this.z = 0;
                 this.hasExploded = true;
-
-                if (city) {
-                    city.destroyBuilding();
-                    console.log(`Nuke hit City ${city.id}, destroying a building.`);
+                this.sound.play();
+                if (city.defense < 50) {
+                    city.population *= 0.5;//Halve population
+                    city.aggression += 20;//Increase aggresssion 
+                    city.stability *= 0.5;//Decrease stabilitiy
+                    if (city) {
+                        city.destroyBuilding();
+                        console.log(`Nuke hit City ${city.id}, destroying a building.`);
+                    }
+                } else {
+                    city.defense -= 50;
                 }
             }
         } else {

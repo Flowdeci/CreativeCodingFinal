@@ -6,15 +6,17 @@ let activeMeteorStrike = null;
  */
 function nukeCity(city) {
     if (city) {
-        city.population *= 0.5;//Halve population
-        city.aggression += 20;//Increase aggresssion 
-        city.stability *= 0.5;//Decrease stabilitiy
-
-        city.triggerNukeEffect();
-        console.log(`City ${city.id} has been nuked! Population: ${city.population}, Aggression: ${city.aggression}`);
-        queueMessage(`City ${city.id} has been nuked!!!!`);
+        if (city.nukeEffect == null) {
+            city.triggerNukeEffect();
+            console.log(`City ${city.id} has been nuked! Population: ${city.population}, Aggression: ${city.aggression}`);
+            queueMessage(`City ${city.id} has been nuked!!!!`);
+        }
+        else if (city.nukeEffect.isActive == false) {
+            city.triggerNukeEffect();
+            console.log(`City ${city.id} has been nuked! Population: ${city.population}, Aggression: ${city.aggression}`);
+            queueMessage(`City ${city.id} has been nuked!!!!`);
+        }
     }
-
 }
 
 /**
@@ -23,12 +25,14 @@ function nukeCity(city) {
  */
 function techBoost(city) {
     if (city) {
-        city.technology += 20;
-        city.population += 50;
+        if (city.techBuilding.isTechBoosted == false) {
+            city.technology += 20;
+            city.population += 50;
 
-        city.techBuilding.triggerTechBoostEffect();
-        //console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
-        queueMessage(`City ${city.id} received a tech boost! SHoutout to the tech brosqn!`);
+            city.techBuilding.triggerTechBoostEffect();
+            //console.log(`City ${city.id} received a tech boost! Tech: ${city.technology}, Population: ${city.population}`);
+            queueMessage(`City ${city.id} received a tech boost! SHoutout to the tech brosqn!`);
+        }
     }
 }
 
@@ -38,21 +42,23 @@ function techBoost(city) {
  */
 function plague(city) {
     if (city) {
-        //Reduce stablity and population
-        city.population *= 0.6;
-        city.stability *= 0.7;
+        if (city.isPlagued == false) {
+            //Reduce stablity and population
+            city.population *= 0.6;
+            city.stability *= 0.7;
 
-        //Trigger plague visuals
-        city.triggerPlagueEffect();
+            //Trigger plague visuals
+            city.triggerPlagueEffect();
 
-        //Affect any ally cities with plague
-        if (city.allies) {
-            for (let i = 0; i < city.allies.length; i++) {
-                city.allies[i].population *= 0.7;
-                city.allies[i].stability *= 0.8;
+            //Affect any ally cities with plague
+            if (city.allies) {
+                for (let i = 0; i < city.allies.length; i++) {
+                    city.allies[i].population *= 0.7;
+                    city.allies[i].stability *= 0.8;
+                }
             }
+            queueMessage(`City ${city.id} has been plagued! LOCKDOWN!`);
         }
-        queueMessage(`City ${city.id} has been plagued! LOCKDOWN!`);
     }
 }
 
@@ -61,15 +67,14 @@ function plague(city) {
  * @param {City[]} cities - The list of all cities in the simulation.
  */
 function meteorStrike(cities) {
-    for (let city of cities) {
-        city.population *= 0.7; // Reduce population by 30%
-        city.stability *= 0.8; // Decrease stability
+
+    if (activeMeteorStrike == null) {
+
+        activeMeteorStrike = new MeteorStrike(cities);
+
+        console.log("A meteor strike has affected all cities!");
+        queueMessage("METTTEOOOOOORSSSSSSSSSSSSS");
     }
 
-    activeMeteorStrike = new MeteorStrike(cities);
-
-    console.log("A meteor strike has affected all cities!");
-    queueMessage("METTTEOOOOOORSSSSSSSSSSSSS");
-    
 }
 

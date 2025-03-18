@@ -2,7 +2,7 @@ class MeteorStrike {
     constructor(cities) {
         this.meteors = [];
 
-        for (let city of cities) {
+        for (let i = random(7, 15); i > 0; i--) {
             this.meteors.push({
                 x: random(-earthWidth / 2, earthWidth / 2),
                 y: random(-earthHeight / 2, earthHeight / 2),
@@ -12,9 +12,17 @@ class MeteorStrike {
                 explosionTriggered: false,
                 explosionParticles: [],
                 shockwaveRadius: 0,
-                isActive: true
+                isActive: true,
+
             })
         }
+        let impactAudio = new Audio('assets/sounds/meteorImpact.mp3');
+        let fallingAudio = new Audio('assets/sounds/meteorFalling.mp3');
+
+        fallingAudio.play();
+        setTimeout(() => {
+            impactAudio.play();
+        }, 1000);
     }
 
 
@@ -29,13 +37,19 @@ class MeteorStrike {
                 if (meteor.z <= 0) {
                     meteor.z = 0;
                     meteor.explosionTriggered = true;
+
                     console.log("metor hit ground")
 
                     for (let city of cities) {
                         let distance = dist(city.x, city.y, meteor.x, meteor.y);
-                        if (distance < 100) { 
-                            city.destroyBuilding();
-                            console.log(`Meteor destroyed a building in City ${city.id}`);
+                        if (distance < 150) {
+                            if (city.defense < 50) {
+                                city.population *= 0.7; // Reduce population by 30%
+                                city.stability *= 0.8; // Decrease stability
+                                city.destroyBuilding(); // Destroy a building
+                            } else {
+                                city.defense -= 50; // Reduce defense by 50
+                            }
                         }
                     }
 

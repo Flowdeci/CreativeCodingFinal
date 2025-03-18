@@ -161,7 +161,7 @@ class City {
 
     triggerPlagueEffect() {
         this.isPlagued = true;
-
+        this.plagueParticles.startAudioLoop();
         const plagueInterval = setInterval(() => {
             if (this.isPlagued) {
                 this.plagueParticles.emit();
@@ -172,13 +172,16 @@ class City {
         setTimeout(() => {
             this.isPlagued = false
             clearInterval(plagueInterval);
+            this.plagueParticles.stopAudioLoop();
         }, 7000)
 
+        /** 
         for (let ally of this.allies) {
             if (!ally.isPlagued) { // Avoid re-triggering if the ally is already plagued
                 ally.triggerPlagueEffect();
             }
         }
+            */
     }
 
     initializeBuilding() {
