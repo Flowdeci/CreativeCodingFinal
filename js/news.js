@@ -29,7 +29,7 @@ function processMessageQueue() {
 
 // Function to add a message to the queue
 function queueMessage(newText) {
-    console.log(`Queuing message: ${newText}`);
+    //console.log(`Queuing message: ${newText}`);
     messageQueue.push(newText);
 }
 

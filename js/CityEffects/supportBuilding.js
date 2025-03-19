@@ -41,6 +41,8 @@ class SupportBuildings {
                 push();
                 translate(building.x, building.y, height / 2);
                 fill('grey');
+                stroke(0);
+                strokeWeight(2);
                 box(building.width, building.depth, height);
                 pop();
             }

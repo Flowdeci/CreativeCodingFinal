@@ -259,6 +259,8 @@ class City {
             // Color based on stability
             let stabilityColor = lerpColor(color(255, 0, 0), color(0, 255, 0), this.stability);
             fill(stabilityColor);
+            stroke(0);
+            strokeWeight(2)
 
             if (this.dimensions[iter].z > 0) {
                 box(this.dimensions[iter].x, this.dimensions[iter].y, this.dimensions[iter].z); // Draw the building
@@ -434,13 +436,25 @@ class City {
             return;
         }
 
+        this.removeFromAllRelationships();
+        this.isDestroyed = true;
         // Remove the city from the cities array
         cities.splice(index, 1);
+
+        // Remove all events for this city from the scheduler
+        scheduler.filter(event => event.target !== this);
+
+        animations = animations.filter(animation =>
+            animation.start.x !== this.x ||
+            animation.start.y !== this.y ||
+            animation.end.x !== this.x ||
+            animation.end.y !== this.y
+        );
 
         // Schedule a respawn event if necessary
         if (cities.length < citiesSize) {
             //console.log(`Scheduling respawn for a new city in 5000ms.`);
-            scheduleEvent("respawnCity", null, random(5000, 10000), false); // Delay of 5 seconds
+            //scheduleEvent("respawnCity", null, random(5000, 10000), false); // Delay of 5 seconds
         }
 
         //console.log(`City ${this.id} successfully removed.`);
@@ -463,6 +477,7 @@ class City {
 
     handleAllyLogic(cities) {
         const MAX_ALLIES = 4;
+        //console.log(`City ${this.id} is forming allies/hostiles.`);
 
         // If at the cap, randomly remove an ally
         if (this.allies.length >= MAX_ALLIES) {
@@ -470,7 +485,7 @@ class City {
                 let removedAlly = random(this.allies);
                 this.removeAlly(removedAlly);
                 removedAlly.removeAlly(this);
-                console.log(`City ${this.id} removed City ${removedAlly.id} as an ally`);
+                //console.log(`City ${this.id} removed City ${removedAlly.id} as an ally`);
             }
         }
 
@@ -480,13 +495,14 @@ class City {
 
     handleHostileLogic(cities) {
         const MAX_HOSTILES = 3; // Maximum number of hostiles allowed
+        //console.log(`City ${this.id} is forming allies/hostiles.`);
 
         if (this.hostiles.length >= MAX_HOSTILES) {
             if (random() < 0.5) {
                 let removedHostile = random(this.hostiles);
                 this.removeHostile(removedHostile);
                 removedHostile.removeHostile(this);
-                console.log(`City ${this.id} removed City ${removedHostile.id} as a hostile`);
+                //console.log(`City ${this.id} removed City ${removedHostile.id} as a hostile`);
             }
         }
 
@@ -547,8 +563,22 @@ class City {
         }
     }
 
+    removeFromAllRelationships() {
+        for (let city of cities) {
+            if (city !== this) {
+                // Remove this city from allies and hostiles
+                city.allies = city.allies.filter(ally => ally !== this);
+                city.hostiles = city.hostiles.filter(hostile => hostile !== this);
+            }
+        }
+        console.log(`City ${this.id} removed from all relationships.`);
+    }
+
     trade() {
         for (let ally of this.allies) {
+            if (ally.isDestroyed || ally === this || ally === null || !cities.includes(ally)) {
+                return;
+            }
             // Simulate Trading Resources
             let tradeAmount = map(this.population, 100, 1000, 0, 1) + this.stability + map(this.diplomacy, 0, 100, 0, 1);
             this.population += tradeAmount;
@@ -566,6 +596,8 @@ class City {
             this.technology = constrain(this.technology, 0, 100);
             ally.technology = constrain(ally.technology, 0, 100);
 
+            triggerTradeAnimation(this, ally);
+
             //console.log(`Trade completed between (${this.id}) and (${ally.id})`);
         }
     }
@@ -581,24 +613,32 @@ class City {
     }
 
     applyStatChange() {
-        //console.log("Changing Stats")
-        // Technology boosts population growth, stability decreases it.
+        // Random fluctuations to prevent stagnation
+        this.population += random(-5, 5);
+        this.technology += random(-2, 2);
+        this.stability += random(-0.02, 0.02);
+        this.aggression += random(-1, 1);
+        this.militaryStrength += random(-3, 3);
+
+        // Technology boosts population growth, stability decreases it
         let pop_variance = map(this.stability, 0, 1, 0, 30);
         this.population += map(random(-60 + pop_variance, 20 + pop_variance) + map(this.technology, 0, 100, 0, 5), -30, 35, -50, 50);
 
-        // Aggression and plauges reduces stability
+        // Aggression and plagues reduce stability
         this.stability -= map(this.aggression, 0, 100, 0, 0.2) + this.isPlagued * 0.01;
 
         // Diplomacy boosts population and technology
         this.population += map(this.diplomacy, 0, 100, 0, 3);
         this.technology += map(this.diplomacy, 0, 100, 0, 2);
 
-        this.technology -= random(0, 5);
-        if (this.militaryStrength > 60) {
-            this.militaryStrength -= random(0, 5);
+        // Apply additional constraints
+        if (this.technology > 80) {
+            this.technology -= random(5, 10);
+            this.stability -= 0.05;
         }
-
-
+        if (this.militaryStrength > 90) {
+            this.militaryStrength -= random(1, 5);
+        }
 
         // Population increases aggression
         this.aggression += map(this.population, 100, 1000, 0, 5);
@@ -611,10 +651,12 @@ class City {
         this.defense = constrain(this.defense, 0, 100);
         this.militaryStrength = constrain(this.militaryStrength, 0, 100);
         this.diplomacy = constrain(this.diplomacy, 0, 100);
+
+        //console.log(`City ${this.id} stats updated: Tech=${this.technology.toFixed(2)}, Agg=${this.aggression.toFixed(2)}, Stability=${this.stability.toFixed(2)}`);
     }
 
     attack(targetCity) {
-        if (targetCity) {
+        if (targetCity && cities.includes(targetCity)) {
             if (this.hostiles.includes(targetCity) && this.militaryStrength > targetCity.defense) {
                 //Calculate damage
                 let damage = this.militaryStrength - targetCity.defense;
@@ -649,6 +691,7 @@ class City {
                 this.defense = constrain(this.defense, 0, 100);
                 this.militaryStrength = constrain(this.militaryStrength, 0, 100);
                 this.diplomacy = constrain(this.diplomacy, 0, 100);
+                triggerAttackAnimation(this, targetCity);
             }
 
         }

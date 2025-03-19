@@ -17,6 +17,8 @@ let clouds = [];
 
 let myFont;
 
+let animations = [];
+
 function preload() {
   myFont = loadFont('assets/fonts/Raleway-Italic-VariableFont_wght.ttf');
 }
@@ -111,7 +113,7 @@ function isFarEnough(newX, newY) {
 
 function draw() {
   //Background
-  background("black");
+  background("lightblue");
 
 
   // Enable orbiting with the mouse.
@@ -139,6 +141,9 @@ function draw() {
     drawRelationshipLines(selectedCity);
   }
 
+  // Draw animations
+  renderAnimations();
+
   if (activeMeteorStrike) {
     //console.log(activeMeteorStrike);
     activeMeteorStrike.update(cities);
@@ -152,30 +157,91 @@ function draw() {
   processEvents();
 }
 
-function spawnNewCity() {
-  let relativeX, relativeY, x, y;
-  let validPosition = false;
+function triggerAttackAnimation(attacker, target) {
+  animations.push({
+    type: "attack",
+    start: createVector(attacker.x, attacker.y, attacker.total_height),
+    end: createVector(target.x, target.y, target.total_height),
+    progress: 0,
+    color: color(255, 0, 0),
+  });
+}
 
-  while (!validPosition) {
-    relativeX = random(0.2, 0.8);
-    relativeY = random(0.2, 0.8);
+function triggerTradeAnimation(city1, city2) {
+  animations.push({
+    type: "trade",
+    start: createVector(city1.x, city1.y, city1.total_height),
+    end: createVector(city2.x, city2.y, city2.total_height),
+    progress: 0,
+    color: color(0, 255, 0),
+  });
+}
 
-    x = map(relativeX, 0.1, 0.9, -(earthWidth / 2), earthWidth / 2);
-    y = map(relativeY, 0.1, 0.9, -(earthHeight / 2), earthHeight / 2);
+function renderAnimations() {
+  for (let i = animations.length - 1; i >= 0; i--) {
+    let animation = animations[i];
+    let { start, end, progress, color } = animation;
 
-    if (isFarEnough(x, y)) {
-      validPosition = true;
+    // Validate that the start and end points are still valid
+    if (!isCityValid(start) || !isCityValid(end)) {
+      animations.splice(i, 1); // Remove invalid animation
+      continue;
+    }
+
+    // Calculate the current position of the animation
+    let current = p5.Vector.lerp(start, end, progress);
+
+    // Draw the animation
+    push();
+    stroke(color);
+    strokeWeight(5);
+    line(start.x, start.y, start.z, current.x, current.y, current.z); // Line for the animation
+    pop();
+
+    // Update progress
+    animation.progress += 0.02; // Speed of animation
+
+    // Remove animation if complete
+    if (animation.progress >= 1) {
+      animations.splice(i, 1);
     }
   }
-
-  let population = random(100, 1000);
-  let newCity = new City(x, y, population);
-  newCity.relativeX = relativeX;
-  newCity.relativeY = relativeY;
-
-  cities.push(newCity);
-  console.log(`New city spawned with ID ${newCity.id}`);
 }
+
+// Helper function to validate if a city is still valid
+function isCityValid(position) {
+  return cities.some(city => city.x === position.x && city.y === position.y);
+}
+
+function spawnNewCity() {
+  if (cities.length < citiesSize) {
+    let relativeX, relativeY, x, y;
+    let validPosition = false;
+
+    while (!validPosition) {
+      relativeX = random(0.2, 0.8);
+      relativeY = random(0.2, 0.8);
+
+      x = map(relativeX, 0.1, 0.9, -(earthWidth / 2), earthWidth / 2);
+      y = map(relativeY, 0.1, 0.9, -(earthHeight / 2), earthHeight / 2);
+
+      if (isFarEnough(x, y)) {
+        validPosition = true;
+      }
+    }
+
+    let population = random(100, 1000);
+    const newCity = new City(x, y, population);
+    newCity.relativeX = relativeX;
+    newCity.relativeY = relativeY;
+
+    cities.push(newCity);
+    console.log(`New city spawned with ID ${newCity.id}`);
+    queueMessage(`Whos this new guy, City: ${newCity.id}?`);
+  }
+}
+
+setInterval(spawnNewCity, 7000);
 
 function drawGround() {
   let gridSize = 100; // Size of each grid square, have higher for better performance
@@ -203,7 +269,7 @@ function drawSun() {
   push();
   noStroke();
   fill(255, 223, 0);
-  translate(300, -200, 700);
+  translate(300, -200, 1000);
   sphere(70);
   pop();
 }
@@ -235,7 +301,7 @@ function drawClouds() {
 
 function setupClouds() {
   clouds = [];
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 25; i++) {
     let ellipsoids = [];
     let cloudSize = random(40, 80);
 
@@ -254,7 +320,7 @@ function setupClouds() {
     clouds.push({
       x: random(-earthWidth / 2, earthWidth / 2),
       y: random(-earthHeight / 2, earthHeight / 2),
-      z: random(500, 600),
+      z: random(700, 1100),
       speed: random(0.1, 0.3),
       ellipsoids
     });
