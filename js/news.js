@@ -45,7 +45,7 @@ setInterval(() => {
         queueMessage("<<<<<PEANUT BUTTER>>>>>>");
     }
     else if (rng < 20) {
-        queueMessage("<<<<<JELLY>>>>>>");
+        queueMessage("money money money");
     }
     else if (rng < 30) {
         queueMessage("MESSI IS THE GOAT");
@@ -63,7 +63,7 @@ setInterval(() => {
         queueMessage("Remeber to harvest your mats");
     }
     else if (rng < 80) {
-        queueMessage("!!!!!!HULU!!!!!");
+        queueMessage("prolly should find a job");
     }
     else if (rng < 90) {
         queueMessage("So many cities, so little time");
