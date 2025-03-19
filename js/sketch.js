@@ -412,10 +412,10 @@ function drawRelationshipLines(city) {
 
 setInterval(() => {
   meteorStrike(cities);
-}, 18000);
+}, 25000);
 
 setTimeout(() => {
   randomCity = random(cities);
   plague(randomCity);
-},10000);
+},20000);
 
