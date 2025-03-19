@@ -1,11 +1,11 @@
 let canvasContainer;
 let centerHorz, centerVert;
 
-let earthHeight = 1200;
-let earthWidth = 1200;
+let earthHeight = 1500;
+let earthWidth = 1500;
 
 let cities = [];
-let citiesSize = 10;
+let citiesSize = 15;
 let minimumDistance = 250;
 
 let selectedCity = null;
@@ -111,7 +111,7 @@ function isFarEnough(newX, newY) {
 
 function draw() {
   //Background
-  background("lightblue");
+  background("black");
 
 
   // Enable orbiting with the mouse.

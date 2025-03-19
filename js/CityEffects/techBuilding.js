@@ -33,7 +33,47 @@ class TechBuilding {
                     noFill();
                     stroke(0, 255, 255, 150);
                     box(cubeScale);
-                    pop();
+                   
+
+                    if (this.city.technology > 80) {
+                        // Add smaller rotating cube inside
+                        push();
+                        rotateX(-frameCount * 0.03);
+                        rotateY(frameCount * 0.03);
+                        stroke(0, 255, 255, 100);
+                        box(10);
+                        pop();
+
+                        if (this.city.technology > 90) {
+                            // **Orbiting Particles**
+                            for (let i = 0; i < 5; i++) {
+                                let angle = frameCount * 0.02 + i * (TWO_PI / 5);
+                                let orbitRadius = 30;
+                                let x = cos(angle) * orbitRadius;
+                                let y = sin(angle) * orbitRadius;
+                                push();
+                                noStroke();
+                                fill(0, 255, 255, 200);
+                                ellipse(x, y, 5);
+                                pop();
+                            }
+
+                            // **Flowing Particles**
+                            for (let i = 0; i < 5; i++) {
+                                let offset = frameCount * 0.5 + i * 20;
+                                let flowRadius = 30 + offset % 100;
+                                let x = cos(offset * 0.1) * flowRadius;
+                                let y = sin(offset * 0.1) * flowRadius;
+
+                                push();
+                                noStroke();
+                                fill(0, 255, 255, 150);
+                                ellipse(x, y, 3);
+                                pop();
+                            }
+                        }
+
+                    }
                 }
             }
             pop();

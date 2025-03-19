@@ -27,11 +27,11 @@ class City {
         this.reputation = random(30, 80);
 
         // Schedule initial relationship update
-        scheduleEvent("updateRelationships", this, 5000, true);
-        scheduleEvent("trade", this, 5000, true);
-        scheduleEvent("statChange", this, 7000, true);
-        scheduleEvent("attack", this, 5000, true);
-        scheduleEvent("plague", this, 15000, true);
+        scheduleEvent("updateRelationships", this, random(4000, 7000), true);
+        scheduleEvent("trade", this, random(5000, 10000), true);
+        scheduleEvent("statChange", this, random(4000, 7000), true);
+        scheduleEvent("attack", this, random(5000, 10000), true);
+        scheduleEvent("plague", this, random(10000, 20000), true);
 
         // Initialize building properties
         this.tiers = floor(map(this.technology, 0, 100, 1, 5)); // Tiers based on technology
@@ -159,23 +159,23 @@ class City {
         push();
 
         // Position the ID slightly above the city
-        translate(this.x, this.y, this.total_height + 70); // 20 units above the city\
-        rotateX(HALF_PI * 3); // Rotate the text to face the camera
+        translate(this.x, this.y, this.total_height + 70);
+        rotateX(HALF_PI * 3);
         rotateY(frameCount / 50); // Spin the text for fun    
 
         // Holographic text style
-        let holographicColor = color(0, 255, 255, 150); // Cyan with alpha for transparency
+        let holographicColor = color(0, 255, 255, 150);
         fill(holographicColor);
         noStroke();
 
         // Pulsing effect for the holographic number
         textFont(myFont);
-        let textSizePulse = map(sin(frameCount * 0.1), -1, 1, 24, 32); // Text size pulses between 14 and 18
+        let textSizePulse = map(sin(frameCount * 0.1), -1, 1, 24, 32);
         textSize(textSizePulse);
         textAlign(CENTER, CENTER);
 
         // Draw the city ID
-        text(`#${this.id}`, 0, 0); // Display the ID (e.g., #0, #1, etc.)
+        text(`#${this.id}`, 0, 0);
 
         pop();
     }
@@ -460,6 +460,7 @@ class City {
             this.handleHostileLogic(cities);
         }
     }
+
     handleAllyLogic(cities) {
         const MAX_ALLIES = 4;
 
@@ -492,6 +493,7 @@ class City {
         // Attempt to mark a new hostile
         this.findBestHostile(cities);
     }
+
     findBestAlly(cities) {
         let potentialAllies = cities.filter(city =>
             city !== this &&
@@ -553,6 +555,7 @@ class City {
             ally.population += tradeAmount;
 
             let techTransfer = map(this.technology, 0, 100, 0, 1) + this.stability * 0.5 + map(this.diplomacy, 0, 100, 0, 0.5);
+            constrain(techTransfer, 0, 1);
             this.technology += techTransfer;
             ally.technology += techTransfer;
 
@@ -584,11 +587,18 @@ class City {
         this.population += map(random(-60 + pop_variance, 20 + pop_variance) + map(this.technology, 0, 100, 0, 5), -30, 35, -50, 50);
 
         // Aggression and plauges reduces stability
-        this.stability -= map(this.aggression, 0, 100, 0, 0.1) + this.isPlagued * 0.01;
+        this.stability -= map(this.aggression, 0, 100, 0, 0.2) + this.isPlagued * 0.01;
 
         // Diplomacy boosts population and technology
         this.population += map(this.diplomacy, 0, 100, 0, 3);
         this.technology += map(this.diplomacy, 0, 100, 0, 2);
+
+        this.technology -= random(0, 5);
+        if (this.militaryStrength > 60) {
+            this.militaryStrength -= random(0, 5);
+        }
+
+
 
         // Population increases aggression
         this.aggression += map(this.population, 100, 1000, 0, 5);
@@ -622,25 +632,25 @@ class City {
                 targetCity.population = constrain(targetCity.population, 100, 1000);
 
                 //Log Attack
-                queueMessage(`City ${this.id} attacked City ${targetCity.id} dealing ${damage.toFixed(0)} damage!`);
+                queueMessage(`City ${this.id} attacked City ${targetCity.id}!`);
+                //Apply drastic stat changes
+                this.population += map(this.militaryStrength - targetCity.defense, -100, 100, -500, 0);
+                this.technology += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 15);
+                this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -30, 30)
+                this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -100, 0);
+                this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 20);
+                this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -20, 20)
 
+                //Constrain Values
+                //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
+                //city can be destroyed
+                this.technology = constrain(this.technology, 0, 100);
+                this.aggression = constrain(this.aggression, 0, 100);
+                this.defense = constrain(this.defense, 0, 100);
+                this.militaryStrength = constrain(this.militaryStrength, 0, 100);
+                this.diplomacy = constrain(this.diplomacy, 0, 100);
             }
-            //Apply drastic stat changes
-            this.population += map(this.militaryStrength - targetCity.defense, -100, 100, -500, 0);
-            this.technology += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 15);
-            this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -30, 30)
-            this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -100, 0);
-            this.defense += map(this.militaryStrength - targetCity.defense, -100, 100, -10, 20);
-            this.aggression += map(this.militaryStrength - targetCity.defense, -100, 100, -20, 20)
 
-            //Constrain Values
-            //this.population = constrain(this.population, 100, 1000); dont contraisn populaiton so 
-            //city can be destroyed
-            this.technology = constrain(this.technology, 0, 100);
-            this.aggression = constrain(this.aggression, 0, 100);
-            this.defense = constrain(this.defense, 0, 100);
-            this.militaryStrength = constrain(this.militaryStrength, 0, 100);
-            this.diplomacy = constrain(this.diplomacy, 0, 100);
         }
     }
 

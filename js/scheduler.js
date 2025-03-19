@@ -58,18 +58,34 @@ function handleEvent(event) {
         case "attack":
             if (event.target && event.target instanceof City) {
                 if (event.target.hostiles.length > 0) {
-                    for(city in event.target.hostiles) {
-                        let rng = random(0, 50);
-                        let techDiff = event.target.technology - city.technology;
-                        let strengthDiff = event.target.militaryStrength - city.militaryStrength;
-                        if(map(techDiff, -100, 100, -15, 15) + map(strengthDiff, -100, 100, -35, 35) + map(event.target.aggression, 0, 100, 0, 70) < rng) {
-                            console.log("Attack successful");
-                            event.target.attack(city);
+                    // Filter valid hostiles
+                    let validHostiles = event.target.hostiles.filter(city => city && !city.isDestroyed);
+
+                    for (let city of validHostiles) {
+                        if (city && city.technology != null && city.militaryStrength != null) {
+                            // Calculate stat differences
+                            let techDiff = event.target.technology - city.technology;
+                            let strengthDiff = event.target.militaryStrength - city.militaryStrength;
+                            let aggressionFactor = map(event.target.aggression, 0, 100, 0, 50);
+
+                            let attackScore =
+                                map(techDiff, -100, 100, -20, 20) +
+                                map(strengthDiff, -100, 100, -30, 30) +
+                                aggressionFactor;
+
+
+                            let rng = random(0, 100);
+
+
+                            if (attackScore > rng) {
+                                event.target.attack(city); // Execute the attack
+                            }
                         }
                     }
                 }
             }
             break;
+
         case "trade":
             if (event.target && event.target instanceof City) {
                 event.target.trade(); // Call the trade method for the city
