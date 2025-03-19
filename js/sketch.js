@@ -241,7 +241,7 @@ function spawnNewCity() {
   }
 }
 
-setInterval(spawnNewCity, 7000);
+setInterval(spawnNewCity,3000);
 
 function drawGround() {
   let gridSize = 100; // Size of each grid square, have higher for better performance
