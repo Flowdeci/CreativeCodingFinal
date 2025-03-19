@@ -380,7 +380,7 @@ function updateCityStatsMenu() {
       <strong>Military Strength:</strong> ${selectedCity.militaryStrength.toFixed(2)}<br>
       <strong>Diplomacy:</strong> ${selectedCity.diplomacy.toFixed(2)}<br>
       <strong>Stability:</strong> ${selectedCity.stability.toFixed(2)}<br>
-      <strong>Reputation:</strong> ${selectedCity.reputation.toFixed(2)}<br>
+      
     `;
   } else {
     statsContent.textContent = 'Select a city to view stats.';
